@@ -213,7 +213,6 @@ public class TimelineMissionImpl extends DJIMissionImpl {
             }
         }
 
-
     }
 
     private List<TimelineElement> getTimelineElements(List<WaypointMission> waypointMissions) {
@@ -241,6 +240,9 @@ public class TimelineMissionImpl extends DJIMissionImpl {
                 float altitude = (float) ((Survey) item).getSurveyDetail().getAltitude();
                 float speed = (float) ((Survey) item).getSurveyDetail().getSpeed();
                 float imageDistance = (float) ((Survey) item).getSurveyDetail().getLongitudinalPictureDistance();
+
+
+
                 MissionDetails missionDetails = getCurrentMissionDetails(points, speed, imageDistance, altitude);
                 missionsToSurvey.add(missionDetails);
             }
@@ -256,6 +258,13 @@ public class TimelineMissionImpl extends DJIMissionImpl {
         List<MissionDetails> missionDetailsList = getPreviousMissionDetails(context);
         List<MissionDetails> missionsToSurvey = missionDetailsList.subList(sharedPreferences.getInt(context.getString(R.string.survey_index), -1), missionDetailsList.size());
         List<LatLong> newFirstBoundaryWaypoints = getWaypointsFromString(missionsToSurvey.get(0).getWaypoints(), startWaypointIndex);
+
+
+
+        // before setting way points, can their altitudes be adjusted from getMissionDetailsFromMissionProxyItems(...)
+        // are these altitudes returned from what the ultrasonic sensor senses or from preset mission altitudes
+        // is image distance the distance (from the ground with which the drone took pictures from?
+        // can that be used to adjust waypoint altitude values instead
         missionsToSurvey.get(0).setWaypoints(convertWaypointToString(newFirstBoundaryWaypoints));
         return missionsToSurvey;
     }

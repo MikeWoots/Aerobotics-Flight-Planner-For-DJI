@@ -3,6 +3,7 @@ package co.aerobotics.android.mission;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 
 import co.aerobotics.android.DroidPlannerApp;
 import co.aerobotics.android.R;
+import co.aerobotics.android.data.CSVReader;
+import co.aerobotics.android.data.GpsTracker;
 import co.aerobotics.android.data.SQLiteDatabaseHandler;
 import co.aerobotics.android.media.ImageImpl;
 import co.aerobotics.android.proxy.mission.MissionProxy;
@@ -433,6 +436,9 @@ public class DJIMissionImpl {
         setAspectRatio();
     }
 */
+
+    CSVReader csv;
+
     public WaypointMission buildMission(MissionDetails missionDetails, List<LatLong> points, WaypointMissionFinishedAction action){
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder();
         //get mission parameters
@@ -440,11 +446,28 @@ public class DJIMissionImpl {
         float imageDistance = missionDetails.getImageDistance();
         float altitude = missionDetails.getAltitude();
 
+        csv = new CSVReader(context);
+        csv.readFile();
+
         //generate list of waypoint objects from lat, long, altitude
         List<Waypoint> waypointList = new ArrayList<>();
         for (LatLong point : points) {
             LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
-            Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, altitude);
+
+            //Get altitude at current lat/long location
+            GpsTracker gt = new GpsTracker(context);
+            Location l = gt.getLocation();
+            Double lat = l.getLatitude();
+            Double lon = l.getLongitude();
+            Double alt_double = l.getAltitude();
+
+            Log.d(TAG, "Lat: " + lat + " Long: " + lon + " Alt: " + alt_double);
+
+            Double altitude_adjust_double = alt_double + missionDetails.getAltitude() - csv.getAlt(point.getLongitude(), point.getLatitude());
+            String altitude_adjust_to_float = String.valueOf(altitude_adjust_double).concat("f");
+            Float altitude_adjust_float = Float.valueOf(altitude_adjust_to_float);
+
+            Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, altitude + altitude_adjust_float);
             waypointList.add(mWaypoint);
         }
 
