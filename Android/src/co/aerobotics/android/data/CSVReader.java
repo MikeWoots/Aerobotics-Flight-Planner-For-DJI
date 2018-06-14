@@ -30,8 +30,8 @@ public class CSVReader {
     }
 
     public void readFile(){
-        // The file that this method reads is hardcoded to read the R.raw.test file.
-        InputStream is = context.getResources().openRawResource(R.raw.test);
+        // The file that this method reads is hardcoded to read the R.raw.test(2) file.
+        InputStream is = context.getResources().openRawResource(R.raw.test2);
         BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
 
         try{
@@ -49,7 +49,7 @@ public class CSVReader {
         return locations.get(i);
     }
 
-    public double getAlt(double lon, double lat){
+    public Double getAlt(double lon, double lat){
         double alt = 0; boolean y,z;
         for(co.aerobotics.android.data.Location x: locations ){
             y = false; z = false;

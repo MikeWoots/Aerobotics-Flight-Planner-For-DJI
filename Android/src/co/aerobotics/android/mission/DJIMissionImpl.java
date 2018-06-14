@@ -3,7 +3,7 @@ package co.aerobotics.android.mission;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Location;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
@@ -14,18 +14,19 @@ import android.widget.Toast;
 import co.aerobotics.android.DroidPlannerApp;
 import co.aerobotics.android.R;
 import co.aerobotics.android.data.CSVReader;
-import co.aerobotics.android.data.GpsTracker;
 import co.aerobotics.android.data.SQLiteDatabaseHandler;
 import co.aerobotics.android.media.ImageImpl;
 import co.aerobotics.android.proxy.mission.MissionProxy;
 
-import com.getkeepsafe.taptargetview.TapTarget;
 import com.google.android.gms.maps.model.LatLng;
 import com.o3dr.services.android.lib.coordinate.LatLong;
 import com.o3dr.services.android.lib.drone.mission.item.MissionItem;
 import com.o3dr.services.android.lib.drone.mission.item.complex.Survey;
 import com.o3dr.services.android.lib.drone.mission.item.complex.SurveyDetail;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -34,13 +35,10 @@ import co.aerobotics.android.proxy.mission.item.MissionItemProxy;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
-import dji.common.flightcontroller.FlightControlState;
 import dji.common.flightcontroller.FlightControllerState;
-import dji.common.flightcontroller.GoHomeAssessment;
 import dji.common.flightcontroller.SmartRTHState;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
-import dji.common.mission.MissionState;
 import dji.common.mission.waypoint.Waypoint;
 import dji.common.mission.waypoint.WaypointMission;
 import dji.common.mission.waypoint.WaypointMissionDownloadEvent;
@@ -202,6 +200,12 @@ public class DJIMissionImpl {
             DroidPlannerApp.getInstance().getFirmwareVersion();
         }
         final FlightController flightController = ((Aircraft) DroidPlannerApp.getProductInstance()).getFlightController();
+        flightController.setMaxFlightHeight(200, new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(DJIError djiError) {
+
+            }
+        });
         flightController.setStateCallback(new FlightControllerState.Callback() {
             @Override
             public void onUpdate(FlightControllerState flightControllerState) {
@@ -437,7 +441,7 @@ public class DJIMissionImpl {
     }
 */
 
-    CSVReader csv;
+    private CSVReader csv;
 
     public WaypointMission buildMission(MissionDetails missionDetails, List<LatLong> points, WaypointMissionFinishedAction action){
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder();
@@ -454,21 +458,25 @@ public class DJIMissionImpl {
         for (LatLong point : points) {
             LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
 
-            //Get altitude at current lat/long location
-            GpsTracker gt = new GpsTracker(context);
-            Location l = gt.getLocation();
-            Double lat = l.getLatitude();
-            Double lon = l.getLongitude();
-            Double alt_double = l.getAltitude();
+            //Hardcoded altitude. Would use altitude at drone's takeoff position
+            float starting_altitude = 1119.0037841796875F;
+            float mission_altitude = missionDetails.getAltitude();
+            float csv_altitude_waypoint = csv.getAlt(point.getLongitude(), point.getLatitude()).floatValue();
+            float altitude_adjust = starting_altitude + mission_altitude - csv_altitude_waypoint;
+            float final_altitude = altitude_adjust + altitude;
+            String toast_display =
+                    "\nStarting altitude: " + starting_altitude +
+                    ", \nMission set altitude: " + mission_altitude +
+                    ", \nCSV altitude at drone simulated lat/lng: " + csv_altitude_waypoint +
+                    ", \nAltitude should adjust by: " + altitude_adjust +
+                            ", \nFinal WayPoint Altitude should be: " + final_altitude;
 
-            Log.d(TAG, "Lat: " + lat + " Long: " + lon + " Alt: " + alt_double);
-
-            Double altitude_adjust_double = alt_double + missionDetails.getAltitude() - csv.getAlt(point.getLongitude(), point.getLatitude());
-            String altitude_adjust_to_float = String.valueOf(altitude_adjust_double).concat("f");
-            Float altitude_adjust_float = Float.valueOf(altitude_adjust_to_float);
-
-            Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, altitude + altitude_adjust_float);
+            Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, final_altitude);
             waypointList.add(mWaypoint);
+
+            //Save and debug drone data to txt file in device "Notes" folder
+            craeteTXTonSD("drone_debug.txt", toast_display);
+            //TODO: Append data at each way point to drone_debug
         }
 
         //add waypoints to builder
@@ -502,7 +510,23 @@ public class DJIMissionImpl {
         }
     }
 
-
+    private void craeteTXTonSD(String sFileName, String sBody){
+        Environment.getExternalStorageState();
+        try {
+            File root = new File(Environment.getExternalStorageDirectory(), "Notes");
+            if (!root.exists()) {
+                root.mkdirs();
+            }
+            File gpxfile = new File(root, sFileName);
+            FileWriter writer = new FileWriter(gpxfile);
+            writer.append(sBody);
+            writer.flush();
+            writer.close();
+            Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     //Loads mission object into device memory
     private boolean loadMission(WaypointMission mission){

@@ -90,8 +90,6 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
-
         Log.d(LOG, CREATE_BOUNDARY_TABLE);
         Log.d(LOG, CREATE_CROPTYPE_TABLE);
         Log.d(LOG, CREATE_FARMNAME_TABLE);
