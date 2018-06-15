@@ -3,6 +3,7 @@ package co.aerobotics.android.mission;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,7 +15,9 @@ import android.widget.Toast;
 import co.aerobotics.android.DroidPlannerApp;
 import co.aerobotics.android.R;
 import co.aerobotics.android.data.CSVReader;
+import co.aerobotics.android.data.GpsTracker;
 import co.aerobotics.android.data.SQLiteDatabaseHandler;
+import co.aerobotics.android.data.WaypointMissionDebugTxt;
 import co.aerobotics.android.media.ImageImpl;
 import co.aerobotics.android.proxy.mission.MissionProxy;
 
@@ -442,6 +445,7 @@ public class DJIMissionImpl {
 */
 
     private CSVReader csv;
+    private WaypointMissionDebugTxt wp_textfile;
 
     public WaypointMission buildMission(MissionDetails missionDetails, List<LatLong> points, WaypointMissionFinishedAction action){
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder();
@@ -451,6 +455,7 @@ public class DJIMissionImpl {
         float altitude = missionDetails.getAltitude();
 
         csv = new CSVReader(context);
+        wp_textfile = new WaypointMissionDebugTxt(context);
         csv.readFile();
 
         //generate list of waypoint objects from lat, long, altitude
@@ -458,26 +463,24 @@ public class DJIMissionImpl {
         for (LatLong point : points) {
             LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
 
-            //Hardcoded altitude. Would use altitude at drone's takeoff position
+//            Actual altitude at gps position
+//            GpsTracker gt = new GpsTracker(context);
+//            Location location = gt.getLocation();
+//            float starting_altitude = (float) location.getAltitude();
+
+            //Hardcoded altitude for Simulation
             float starting_altitude = 1119.0037841796875F;
             float mission_altitude = missionDetails.getAltitude();
             float csv_altitude_waypoint = csv.getAlt(point.getLongitude(), point.getLatitude()).floatValue();
-            float altitude_adjust = starting_altitude + mission_altitude - csv_altitude_waypoint;
+            float altitude_adjust = csv_altitude_waypoint - starting_altitude + mission_altitude;
             float final_altitude = altitude_adjust + altitude;
-            String toast_display =
-                    "\nStarting altitude: " + starting_altitude +
-                    ", \nMission set altitude: " + mission_altitude +
-                    ", \nCSV altitude at drone simulated lat/lng: " + csv_altitude_waypoint +
-                    ", \nAltitude should adjust by: " + altitude_adjust +
-                            ", \nFinal WayPoint Altitude should be: " + final_altitude;
 
+            wp_textfile.append_to_file(starting_altitude, mission_altitude, csv_altitude_waypoint, altitude_adjust, final_altitude, points.indexOf(point));
             Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, final_altitude);
             waypointList.add(mWaypoint);
-
-            //Save and debug drone data to txt file in device "Notes" folder
-            craeteTXTonSD("drone_debug.txt", toast_display);
-            //TODO: Append data at each way point to drone_debug
         }
+
+        wp_textfile.createText();
 
         //add waypoints to builder
         waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
