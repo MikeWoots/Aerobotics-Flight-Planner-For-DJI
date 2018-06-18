@@ -13,12 +13,14 @@ public class MissionDetails {
     public MissionDetails(){
 
     }
+
     public MissionDetails(String waypoints, float altitude, float imageDistance, float speed) {
         this.waypoints = waypoints;
         this.altitude = altitude;
         this.imageDistance = imageDistance;
         this.speed = speed;
     }
+
 
     public String getWaypoints() {
         return waypoints;

@@ -80,6 +80,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             "boundary_id TEXT, " + KEY_POINTS + " TEXT, " + "name TEXT, " +
             "angle INTEGER, " + "overlap INTEGER, " + "sidelap INTEGER, "
             + "altitude INTEGER, " + "speed INTEGER, request TEXT, client_id INTEGER, display INTEGER, camera TEXT, UNIQUE(" + KEY_BOUNDARY_ID + ")" + " ON CONFLICT IGNORE)";
+
     private static final String CREATE_MISSION_DETAILS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MISSION_DETAILS + " (" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
             KEY_MISSION_WAYPOINTS + " TEXT NOT NULL, " + KEY_MISSION_ALTITUDE + " REAL, " + KEY_MISSION_IMAGE_DISTANCE + " REAL, " + KEY_MISSION_SPEED + " REAL) ";
 
@@ -123,7 +124,6 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         if(oldVersion < 6){
             upgradeVersion6(db);
         }
-
     }
 
     private void upgradeVersion2(SQLiteDatabase db){
@@ -150,8 +150,6 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
     private void upgradeVersion6(SQLiteDatabase db) {
         db.execSQL(CREATE_MISSION_DETAILS_TABLE);
     }
-
-
 
     public List<MissionDetails> getAllMissionDetails(){
         SQLiteDatabase db = this.getReadableDatabase();

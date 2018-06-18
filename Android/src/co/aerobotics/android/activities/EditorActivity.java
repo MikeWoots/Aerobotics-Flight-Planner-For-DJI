@@ -297,6 +297,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     private String clientEmail;
     private Boolean isOnTour = false;
     private Boolean resumePreviousMission = false;
+    private Boolean terrainFollow = false;
 
     private static final String[] REQUIRED_PERMISSION_LIST = new String[]{
             Manifest.permission.VIBRATE,
@@ -526,9 +527,8 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putBoolean(EditorActivity.this.getString(R.string.mission_aborted), false);
                         editor.apply();
-                        missionControl.initializeMission(missionProxy, getApplicationContext(), resumePreviousMission);
+                        missionControl.initializeMission(missionProxy, getApplicationContext(), resumePreviousMission, terrainFollow);
                         resumePreviousMission = false;
-
                         /*
                         ]
 '                        if (resumePreviousMission) {
@@ -966,6 +966,8 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         gestureMapFragment.getMapFragment().zoomToFit(points);
     }
 
+
+    //***// adding terrain follow checkbox
     private void confirmMissionStart(final Context context) {
         LayoutInflater inflater = getLayoutInflater();
         AlertDialog.Builder builder;
@@ -973,6 +975,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         boolean previousMissionAborted = sharedPreferences.getBoolean(context.getString(R.string.mission_aborted), false);
         builder.setTitle("Start Mission");
+
         if (previousMissionAborted) {
             View dialogView = inflater.inflate(R.layout.dialog_resume_mission, null);
             CheckBox resumeCheck = (CheckBox) dialogView.findViewById(R.id.resumeMissionCheckBox);
@@ -983,7 +986,17 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                 }
             });
             builder.setView(dialogView);
+
         } else {
+            View dialogView = inflater.inflate(R.layout.dialog_terrain_follow, null);
+            final CheckBox terrainFollowCheck = (CheckBox) dialogView.findViewById(R.id.activateTerrainFollowCheckBox);
+            terrainFollowCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    terrainFollow = b;
+                }
+            });
+            builder.setView(dialogView);
             builder.setMessage("Are you sure you want to start the mission?");
         }
 

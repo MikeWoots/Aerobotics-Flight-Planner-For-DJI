@@ -84,10 +84,13 @@ public class DJIMissionImpl {
 
     private WaypointMissionOperator instance;
     public boolean cameraStarted = false;
+    private boolean terrain_follow = false;
     private Intent intent;
     public ImageImpl imageImpl;
     private SurveyDetail surveyDetail;
     private FlightControllerKey goHomeKey = FlightControllerKey.create(FlightControllerKey.START_GO_HOME);
+    private CSVReader csv;
+    private WaypointMissionDebugTxt wp_textfile;
 
     private Handler mainHandler = new Handler(Looper.getMainLooper());
     private Context context;
@@ -198,7 +201,7 @@ public class DJIMissionImpl {
     Mission Operations
      */
 
-    public void initializeMission(MissionProxy missionProxy, final Context context, boolean resume) {
+    public void initializeMission(MissionProxy missionProxy, final Context context, boolean resume, boolean terrain_follow) {
         if (DroidPlannerApp.isFirmwareNewVersion() == null) {
             DroidPlannerApp.getInstance().getFirmwareVersion();
         }
@@ -223,8 +226,11 @@ public class DJIMissionImpl {
         });
 
         this.context = context;
+        this.terrain_follow = terrain_follow;
+
         sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         List<MissionDetails> missionsToSurvey;
+
         if (resume) {
             missionsToSurvey = getMissionDetailsFromDb(context, sharedPreferences);
         } else {
@@ -281,6 +287,7 @@ public class DJIMissionImpl {
         if(true){
             intent = new Intent(ERROR_CAMERA);
             mainHandler.post(notifyStatus);
+            mainHandler.post(notifyStatus);
             return false;
         }
         return true;
@@ -331,6 +338,8 @@ public class DJIMissionImpl {
         List<MissionDetails> missionDetailsList = getPreviousMissionDetails(context);
         List<MissionDetails> missionsToSurvey = missionDetailsList.subList(sharedPreferences.getInt(context.getString(R.string.survey_index), -1), missionDetailsList.size());
         List<LatLong> newFirstBoundaryWaypoints = getWaypointsFromString(missionsToSurvey.get(0).getWaypoints(), startWaypointIndex);
+
+
         missionsToSurvey.get(0).setWaypoints(convertWaypointToString(newFirstBoundaryWaypoints));
         return missionsToSurvey;
     }
@@ -444,8 +453,26 @@ public class DJIMissionImpl {
     }
 */
 
-    private CSVReader csv;
-    private WaypointMissionDebugTxt wp_textfile;
+    private float getAdjustedAltitude(MissionDetails missionDetails, LatLong point, List<LatLong> points){
+        //Actual altitude at gps position
+        //GpsTracker gt = new GpsTracker(context);
+        //Location location = gt.getLocation();
+        //float starting_altitude = (float) location.getAltitude();
+
+        float starting_altitude = 1119.0037841796875F;
+        float mission_altitude = missionDetails.getAltitude();
+        float csv_altitude_waypoint = csv.getAlt(point.getLongitude(), point.getLatitude()).floatValue();
+        float altitude_adjust = csv_altitude_waypoint - starting_altitude;
+        float final_altitude = altitude_adjust + mission_altitude;
+        wp_textfile.append_to_file(starting_altitude, mission_altitude, csv_altitude_waypoint, altitude_adjust, final_altitude, points.indexOf(point));
+        return final_altitude;
+    }
+
+    private void loadCSV(){
+        csv = new CSVReader(context);
+        csv.readFile();
+        wp_textfile = new WaypointMissionDebugTxt(context);
+    }
 
     public WaypointMission buildMission(MissionDetails missionDetails, List<LatLong> points, WaypointMissionFinishedAction action){
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder();
@@ -454,33 +481,22 @@ public class DJIMissionImpl {
         float imageDistance = missionDetails.getImageDistance();
         float altitude = missionDetails.getAltitude();
 
-        csv = new CSVReader(context);
-        wp_textfile = new WaypointMissionDebugTxt(context);
-        csv.readFile();
+        if(terrain_follow) loadCSV();
 
         //generate list of waypoint objects from lat, long, altitude
         List<Waypoint> waypointList = new ArrayList<>();
         for (LatLong point : points) {
             LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
 
-//            Actual altitude at gps position
-//            GpsTracker gt = new GpsTracker(context);
-//            Location location = gt.getLocation();
-//            float starting_altitude = (float) location.getAltitude();
+            float final_altitude = altitude;
+            if(terrain_follow)
+                final_altitude = getAdjustedAltitude(missionDetails, point, points);
 
-            //Hardcoded altitude for Simulation
-            float starting_altitude = 1119.0037841796875F;
-            float mission_altitude = missionDetails.getAltitude();
-            float csv_altitude_waypoint = csv.getAlt(point.getLongitude(), point.getLatitude()).floatValue();
-            float altitude_adjust = csv_altitude_waypoint - starting_altitude + mission_altitude;
-            float final_altitude = altitude_adjust + altitude;
-
-            wp_textfile.append_to_file(starting_altitude, mission_altitude, csv_altitude_waypoint, altitude_adjust, final_altitude, points.indexOf(point));
             Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, final_altitude);
             waypointList.add(mWaypoint);
         }
 
-        wp_textfile.createText();
+        if(terrain_follow) wp_textfile.createText();
 
         //add waypoints to builder
         waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
@@ -510,24 +526,6 @@ public class DJIMissionImpl {
             return waypointMissionBuilder.build();
         } else {
             return null;
-        }
-    }
-
-    private void craeteTXTonSD(String sFileName, String sBody){
-        Environment.getExternalStorageState();
-        try {
-            File root = new File(Environment.getExternalStorageDirectory(), "Notes");
-            if (!root.exists()) {
-                root.mkdirs();
-            }
-            File gpxfile = new File(root, sFileName);
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(sBody);
-            writer.flush();
-            writer.close();
-            Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -641,7 +639,6 @@ public class DJIMissionImpl {
     /*
     Getter Methods
      */
-
     private synchronized WaypointMissionOperator getWaypointMissionOperator() {
         if(instance == null) {
             instance = DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator();
@@ -714,7 +711,6 @@ public class DJIMissionImpl {
             return null;
         } else {
             return missionDetailsList;
-
         }
     }
 
