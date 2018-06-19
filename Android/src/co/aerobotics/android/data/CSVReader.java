@@ -42,7 +42,6 @@ public class CSVReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public co.aerobotics.android.data.Location getLocation(int i){

@@ -1,4 +1,4 @@
-package co.aerobotics.android.data;
+package co.aerobotics.android.data.cvshandler;
 
 public class Latitude {
 
@@ -13,10 +13,6 @@ public class Latitude {
         return latitude;
     }
 
-    public double getLatitudeDistance(){
-        return LAT_DISTANCE;
-    }
-
     public double getMinScope(){
         return getLatitude() - (LAT_DISTANCE/2);
     }
@@ -25,5 +21,4 @@ public class Latitude {
         return getLatitude() + (LAT_DISTANCE/2);
     }
 
-    //SET LAT DISTANCE
 }

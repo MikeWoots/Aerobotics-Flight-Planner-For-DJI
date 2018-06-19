@@ -1,7 +1,6 @@
-package co.aerobotics.android.data;
+package co.aerobotics.android.data.cvshandler;
 
 public class Longitude {
-
     final private double LONG_DISTANCE = 0.00001065297146141;
     private double longitude;
 
@@ -13,10 +12,6 @@ public class Longitude {
         return longitude;
     }
 
-    public double getLongitudeDistance(){
-        return LONG_DISTANCE;
-    }
-
     public double getMinScope(){
         return getLongitude() - (LONG_DISTANCE/2);
     }
@@ -25,5 +20,4 @@ public class Longitude {
         return getLongitude() + (LONG_DISTANCE/2);
     }
 
-    //SET LONG_DISTANCE
 }
