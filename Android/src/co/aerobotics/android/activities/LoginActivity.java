@@ -40,11 +40,18 @@ import android.widget.Toast;
 import co.aerobotics.android.DroidPlannerApp;
 import co.aerobotics.android.R;
 import co.aerobotics.android.activities.interfaces.APIContract;
+import co.aerobotics.android.data.Authentication;
+import co.aerobotics.android.data.Login;
 import co.aerobotics.android.data.PostRequest;
 import co.aerobotics.android.data.AeroviewPolygons;
+import co.aerobotics.android.data.SQLiteDatabaseHandler;
+
+import com.google.gson.Gson;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,11 +68,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
+    private static final int DRONE_DEMO_ACCOUNT_ID = 247;
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    private UserAuthTask mAuthTask = null;
 
     // UI references.
     private EditText mEmailView;
@@ -276,7 +284,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserAuthTask(email, password);
             mAuthTask.execute((Void) null);
         }
     }
@@ -361,7 +369,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             emails.add(cursor.getString(ProfileQuery.ADDRESS));
             cursor.moveToNext();
         }
-
         addEmailsToAutoComplete(emails);
     }
 
@@ -397,75 +404,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
     }
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> implements APIContract {
+
+    public class UserAuthTask extends AsyncTask<Void, Void, Boolean> implements APIContract {
 
         private final String mEmail;
         private final String mPassword;
         private boolean serverError = false;
 
-        UserLoginTask(String email, String password) {
+        UserAuthTask(String email, String password) {
             mEmail = email;
             mPassword = password;
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
-
-            String url = APIContract.USER_DETAILS_URL;
-            String jsonStr = String.format("{\"email\":\"%s\",\"password\":\"%s\",\"app\":\"flight\"}",mEmail,mPassword);
-            Log.d("JsonStr", jsonStr);
-
-            PostRequest postRequest = new PostRequest();
-            postRequest.post(jsonStr, url);
-
-            do {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } while (!postRequest.isServerResponseReceived());
-
-            if (postRequest.isServerError()){
-                //TODO handle error message better
-                serverError = true;
-                return false;
-            }
-
-            try {
-                int rc = postRequest.getResponseData().getInt("rc");
-
-                if (rc == 0){
-                    SharedPreferences sharedPref = LoginActivity.this.getSharedPreferences(getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString(getString(R.string.username), mEmail);
-                    editor.putString(getString(R.string.password), mPassword);
-                    editor.putBoolean(getString(R.string.logged_in), true);
-                    editor.putString(getString(R.string.json_data), postRequest.getResponseData().toString());
-                    editor.putInt(getString(R.string.client_id), postRequest.getResponseData().getInt("id"));
-                    editor.apply();
-
-                    Log.d("CLIENT_data", postRequest.getResponseData().toString());
-
-                    MixpanelAPI mixpanelAPI = MixpanelAPI.getInstance(getApplicationContext(), DroidPlannerApp.getInstance().getMixpanelToken());
-                    mixpanelAPI.identify(mEmail);
-                    mixpanelAPI.getPeople().identify(mEmail);
-                    mixpanelAPI.getPeople().set("Email", mEmail);
-                    mixpanelAPI.track("FPA: UserLoginSuccess", null);
-                    mixpanelAPI.flush();
-                    return true;
-                } else{
-                    return false;
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            return false;
+        protected Boolean doInBackground(Void... voids) {
+            Login login = new Login(LoginActivity.this.getApplicationContext(), mEmail, mPassword);
+            return login.authenticateUser();
         }
 
         @Override
@@ -475,9 +429,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             if (success) {
                 AeroviewPolygons aeroviewPolygons = new AeroviewPolygons(LoginActivity.this);
-                aeroviewPolygons.executeAeroViewSync();
+                aeroviewPolygons.executeGetCropTypesTask();
+                aeroviewPolygons.executeGetFarmOrchardsTask();
+                aeroviewPolygons.executeGetCropFamiliesTask();
                 finish();
-                Intent intent = new Intent(LoginActivity.this, EditorActivity.class);
+                Intent intent = new Intent(LoginActivity.this, FarmManagerActivity.class);
                 LoginActivity.this.startActivity(intent);
             } else {
                 if(serverError){
@@ -488,12 +444,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 }
 
             }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
         }
     }
 }

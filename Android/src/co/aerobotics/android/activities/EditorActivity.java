@@ -92,30 +92,6 @@ import co.aerobotics.android.utils.file.FileStream;
 import co.aerobotics.android.utils.prefs.AutoPanMode;
 import co.aerobotics.android.utils.prefs.DroidPlannerPrefs;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
-import com.getkeepsafe.taptargetview.TapTarget;
-import com.getkeepsafe.taptargetview.TapTargetSequence;
-import com.github.jorgecastilloprz.FABProgressCircle;
-import com.github.jorgecastilloprz.listeners.FABProgressListener;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.o3dr.android.client.utils.FileUtils;
-import com.o3dr.services.android.lib.coordinate.LatLong;
-import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
-import com.o3dr.services.android.lib.drone.mission.MissionItemType;
-import com.o3dr.services.android.lib.drone.mission.item.MissionItem;
-import com.o3dr.services.android.lib.drone.mission.item.complex.Survey;
-
-import org.beyene.sius.unit.length.LengthUnit;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import dji.common.error.DJIError;
 import dji.keysdk.CameraKey;
 import dji.keysdk.callback.GetCallback;
@@ -585,25 +561,6 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     }
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-        switch (item.getItemId()) {
-            case co.aerobotics.android.R.id.menu_open_mission:
-                mMixpanel.track("FPA: TapOpenMissionFile");
-                openMissionFile();
-                return true;
-
-            case co.aerobotics.android.R.id.menu_save_mission:
-                mMixpanel.track("FPA: TapSaveMission");
-                saveMissionFile();
-                return true;
-
-            case R.id.menu_sync_boundaries:
-                mMixpanel.track("FPA: TapSyncWithAeroView");
-                new AeroviewPolygons(this).executeClientDataTask();
-                DroidPlannerApp.getInstance().selectedPolygons.clear();
-                break;
-            default:
-                break;
-        }
         return false;
     }
 
@@ -754,10 +711,10 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                 break;
 
             case R.id.syncWithAeroViewButton:
-                mMixpanel.track("FPA: TapSyncWithAeroView");
-
-                new AeroviewPolygons(this).executeClientDataTask();
-                DroidPlannerApp.getInstance().selectedPolygons.clear();
+//                mMixpanel.track("FPA: TapSyncWithAeroView");
+//
+//                new AeroviewPolygons(this).executeGetFarmsTask();
+//                DroidPlannerApp.getInstance().selectedPolygons.clear();
                 break;
 
             case R.id.fabProgressCircle:
@@ -766,9 +723,12 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                 fabProgressCircle.setClickable(false);
 
                 AeroviewPolygons aeroviewPolygons = new AeroviewPolygons(this);
+                aeroviewPolygons.postOfflineFarms();
+                aeroviewPolygons.executeOfflineBoundariesSync();
                 aeroviewPolygons.setOnSyncFinishedListener(this);
-                aeroviewPolygons.executeClientDataTask();
-
+                aeroviewPolygons.executeGetFarmsTask();
+                aeroviewPolygons.executeGetCropTypesTask();
+                aeroviewPolygons.executeGetFarmOrchardsTask();
                 break;
 
             case R.id.search_boundaries:
@@ -1561,8 +1521,8 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         } else {
             isOnTour = false;
         }
-
     }
+
 
 
 }
