@@ -31,7 +31,7 @@ public class CSVReader {
 
     public void readFile(){
         // The file that this method reads is hardcoded to read the R.raw.test(2) file.
-        InputStream is = context.getResources().openRawResource(R.raw.test2);
+        InputStream is = context.getResources().openRawResource(R.raw.epsg4326_dem_gridspacing_1);
         BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
 
         try{

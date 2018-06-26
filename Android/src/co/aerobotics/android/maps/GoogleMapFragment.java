@@ -266,7 +266,6 @@ public class GoogleMapFragment extends SupportMapFragment implements DPMap,
         }
     };
 
-
     private final GoogleApiClientTask mGoToMyLocationTask = new GoogleApiClientTask() {
         @Override
         public void doRun() {
@@ -1321,8 +1320,6 @@ public class GoogleMapFragment extends SupportMapFragment implements DPMap,
             throw new RuntimeException("Could not encode JSON");
         }
     }
-
-
 
     private void setupMapUI(GoogleMap map) {
         if(getActivity() != null) {

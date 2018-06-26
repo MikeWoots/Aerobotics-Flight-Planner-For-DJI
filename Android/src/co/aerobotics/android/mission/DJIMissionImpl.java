@@ -455,11 +455,13 @@ public class DJIMissionImpl {
 
     private float getAdjustedAltitude(MissionDetails missionDetails, LatLong point, List<LatLong> points){
         //Actual altitude at gps position
-        //GpsTracker gt = new GpsTracker(context);
-        //Location location = gt.getLocation();
-        //float starting_altitude = (float) location.getAltitude();
+        GpsTracker gt = new GpsTracker(context);
+        Location location = gt.getLocation();
 
-        float starting_altitude = 1119.0037841796875F;
+        float starting_altitude = (float) location.getAltitude();
+
+       // float starting_altitude = 1119.0037841796875F;
+       // float starting_altitude = 220.157F;
         float mission_altitude = missionDetails.getAltitude();
         float csv_altitude_waypoint = csv.getAlt(point.getLongitude(), point.getLatitude()).floatValue();
         float altitude_adjust = csv_altitude_waypoint - starting_altitude;
@@ -482,6 +484,7 @@ public class DJIMissionImpl {
         float altitude = missionDetails.getAltitude();
 
         if(terrain_follow) loadCSV();
+        //Check if all the wayoing latlongs are in the csv file. If not, turn terrain following off.
 
         //generate list of waypoint objects from lat, long, altitude
         List<Waypoint> waypointList = new ArrayList<>();
@@ -489,8 +492,11 @@ public class DJIMissionImpl {
             LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
 
             float final_altitude = altitude;
-            if(terrain_follow)
+            if(terrain_follow) {
                 final_altitude = getAdjustedAltitude(missionDetails, point, points);
+                if(final_altitude==0)
+                    final_altitude = missionDetails.getAltitude();
+            }
 
             Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, final_altitude);
             waypointList.add(mWaypoint);

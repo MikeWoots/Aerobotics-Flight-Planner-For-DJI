@@ -1,4 +1,4 @@
-package co.aerobotics.android.data.cvshandler;
+package co.aerobotics.android.data.csvhandler;
 
 public class Location {
     private double alt;

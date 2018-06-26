@@ -1,4 +1,4 @@
-package co.aerobotics.android.data.cvshandler;
+package co.aerobotics.android.data.csvhandler;
 
 public class Longitude {
     final private double LONG_DISTANCE = 0.00001065297146141;

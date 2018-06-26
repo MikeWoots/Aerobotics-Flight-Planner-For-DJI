@@ -2,7 +2,8 @@ package co.aerobotics.android.data;
 
 public class Longitude {
 
-    final private double LONG_DISTANCE = 0.00001065297146141;
+    //final private double LONG_DISTANCE = 0.00001065297146141;
+    final private double LONG_DISTANCE = 0.00001088051192966;
     private double longitude;
 
     public Longitude(double lon){

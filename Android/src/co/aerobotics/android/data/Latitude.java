@@ -2,7 +2,8 @@ package co.aerobotics.android.data;
 
 public class Latitude {
 
-    final private double LAT_DISTANCE = 0.000009011160749139;
+    //final private double LAT_DISTANCE = 0.000009011160749139;
+    final private double LAT_DISTANCE = 0.000009022598582931;
     private double latitude;
 
     public Latitude(double lat){

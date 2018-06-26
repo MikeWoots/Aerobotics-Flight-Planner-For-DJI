@@ -1,4 +1,4 @@
-package co.aerobotics.android.data.cvshandler;
+package co.aerobotics.android.data.csvhandler;
 
 import android.content.Context;
 import android.os.Environment;
