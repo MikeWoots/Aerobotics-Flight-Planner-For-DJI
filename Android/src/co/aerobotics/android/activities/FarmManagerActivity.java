@@ -20,6 +20,7 @@ import android.widget.ListView;
 
 import com.getkeepsafe.taptargetview.TapTarget;
 import com.getkeepsafe.taptargetview.TapTargetSequence;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -49,6 +50,7 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
     List<Farm> farms = new ArrayList<>();
     private SharedPreferences sharedPref;
     private ListView itemList;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -220,13 +222,18 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
         editor.putString(getString(R.string.active_farms), new Gson().toJson(selectedFarmIds)).apply();
     }
 
+    private void openEditorActivity() {
+        Intent intent = new Intent(FarmManagerActivity.this, EditorActivity.class);
+        FarmManagerActivity.this.startActivity(intent);
+        finish();
+    }
+
     private void addSelectedFarmBoundariesToMap() {
         if (DroidPlannerApp.getInstance().isNetworkAvailable()) {
             fetchFarmBoundariesFromServer();
         } else {
             addLocalBoundariesToMap();
         }
-
     }
 
     private void fetchFarmBoundariesFromServer() {
@@ -242,20 +249,13 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
     private String parseListObjectToString() {
         StringBuilder stringBuilder  = new StringBuilder();
         Iterator<Integer> iterator = selectedFarmIds.iterator();
-        while(iterator.hasNext())
-        {
+        while(iterator.hasNext()) {
             stringBuilder.append(iterator.next());
             if(iterator.hasNext()) {
                 stringBuilder.append(",");
             }
         }
         return stringBuilder.toString();
-    }
-
-    private void openEditorActivity() {
-        Intent intent = new Intent(FarmManagerActivity.this, EditorActivity.class);
-        FarmManagerActivity.this.startActivity(intent);
-        finish();
     }
 
     private void shouldShowFarmPrompt() {
@@ -289,14 +289,10 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
             }
 
             @Override
-            public void onSequenceStep(TapTarget lastTarget, boolean targetClicked) {
-
-            }
+            public void onSequenceStep(TapTarget lastTarget, boolean targetClicked) {}
 
             @Override
-            public void onSequenceCanceled(TapTarget lastTarget) {
-
-            }
+            public void onSequenceCanceled(TapTarget lastTarget) {}
         });
 
         targetSequence.start();

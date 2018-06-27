@@ -94,7 +94,6 @@ public class TimelineMissionImpl extends DJIMissionImpl {
                 intent.putExtra("WAYPOINT", String.valueOf(waypointMissionUploadEvent.getProgress().uploadedWaypointIndex + 1));
                 mainHandler.post(notifyStatus);
             }
-
         }
 
         @Override
@@ -107,7 +106,6 @@ public class TimelineMissionImpl extends DJIMissionImpl {
                 editor.apply();
             } else{
                 Toast.makeText(context, "null", Toast.LENGTH_SHORT).show();
-
             }
         }
 

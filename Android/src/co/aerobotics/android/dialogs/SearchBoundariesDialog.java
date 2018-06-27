@@ -39,11 +39,8 @@ import co.aerobotics.android.data.SQLiteDatabaseHandler;
 
 public class SearchBoundariesDialog extends DialogFragment {
 
-
     private String selectedBoundaryId = "";
     private OnGoToBoundaryListener onGoToBoundaryListener;
-
-
 
     @NonNull
     @Override

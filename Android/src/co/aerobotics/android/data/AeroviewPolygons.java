@@ -39,6 +39,7 @@ public class AeroviewPolygons implements APIContract{
     public static final String ACTION_POLYGON_UPDATE = "update_polygon";
     public static final String ACTION_ERROR_MSG = "server_error";
     public static final String SYNC_COMPLETE = "sync_successful";
+    public static final String ACTION_VIEW_FARM = "zoom_to_farm";
     private SQLiteDatabaseHandler sqLiteDatabaseHandler;
     private OnSyncFinishedListener onSyncFinishedListener;
     private static final int DRONE_DEMO_ACCOUNT_ID = 247;
@@ -46,6 +47,7 @@ public class AeroviewPolygons implements APIContract{
     private boolean isGetFarmOrchardsTaskExecuted = false;
     private boolean isGetFarmsTaskExecuted = false;
     private SharedPreferences sharedPref;
+    private ArrayList<String> farmPointStrings;
 
     private static PointExtractor<LatLng> latLngPointExtractor = new PointExtractor<LatLng>() {
         @Override
@@ -63,7 +65,6 @@ public class AeroviewPolygons implements APIContract{
         this.context = context;
         sqLiteDatabaseHandler = new SQLiteDatabaseHandler(context);
         sharedPref = context.getSharedPreferences(context.getResources().getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
-
     }
 
     private void addNewCropTypesToDB(String jsonString) {
@@ -101,14 +102,21 @@ public class AeroviewPolygons implements APIContract{
     public void addPolygonsToMap(){
         String activeFarmIds = getActiveFarmsString();
         List<BoundaryDetail> boundaryDetails = sqLiteDatabaseHandler.getBoundaryDetailsForFarmIds(activeFarmIds);
+
         DroidPlannerApp.getInstance().polygonMap.clear();
+        farmPointStrings = new ArrayList<>();
         for (BoundaryDetail boundaryDetail : boundaryDetails) {
             if (boundaryDetail.isDisplay()) {
                 PolygonData polygonData = new PolygonData(boundaryDetail.getName(), convertStringToLatLngList(boundaryDetail.getPoints()), false, boundaryDetail.getBoundaryId());
                 DroidPlannerApp.getInstance().polygonMap.put(boundaryDetail.getBoundaryId(), polygonData);
+
+                for(LatLng point : polygonData.getPoints())
+                    farmPointStrings.add(point.latitude + " " + point.longitude);
             }
         }
+
         Intent intent = new Intent(ACTION_POLYGON_UPDATE);
+        if(farmPointStrings!=null) intent.putStringArrayListExtra("farm_points", farmPointStrings);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 

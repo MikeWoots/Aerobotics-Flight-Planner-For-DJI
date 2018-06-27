@@ -2,6 +2,7 @@ package co.aerobotics.android.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -46,6 +47,7 @@ import com.getkeepsafe.taptargetview.TapTarget;
 import com.getkeepsafe.taptargetview.TapTargetSequence;
 import com.github.jorgecastilloprz.FABProgressCircle;
 import com.github.jorgecastilloprz.listeners.FABProgressListener;
+import com.google.android.gms.maps.model.LatLng;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.o3dr.android.client.utils.FileUtils;
 import com.o3dr.services.android.lib.coordinate.LatLong;
@@ -118,7 +120,6 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     private Handler listnerHandler = new Handler(Looper.getMainLooper());
     private String TAG = "editor_activity";
 
-
     private static final String ITEM_DETAIL_TAG = "Item Detail Window";
 
     private static final String EXTRA_OPENED_MISSION_FILENAME = "extra_opened_mission_filename";
@@ -128,12 +129,12 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     private static final String MISSION_FILENAME_DIALOG_TAG = "Mission filename";
     private Snackbar bar;
 
-
     static {
         eventFilter.addAction(MissionProxy.ACTION_MISSION_PROXY_UPDATE);
         eventFilter.addAction(DroidPlannerPrefs.PREF_VEHICLE_DEFAULT_SPEED);
         eventFilter.addAction(AeroviewPolygons.ACTION_ERROR_MSG);
         eventFilter.addAction(AeroviewPolygons.SYNC_COMPLETE);
+        eventFilter.addAction(AeroviewPolygons.ACTION_POLYGON_UPDATE);
         eventFilter.addAction(DroidPlannerApp.REGISTER_DJI_SDK);
         eventFilter.addAction(DJIMissionImpl.MISSION_START);
         eventFilter.addAction(DJIMissionImpl.MiSSION_STOP);
@@ -148,7 +149,13 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
+            Bundle extras = intent.getExtras();
+
             switch (action) {
+                case AeroviewPolygons.ACTION_POLYGON_UPDATE:
+                    if(extras!=null)
+                        OnGoToFarmSelected(convertStringPointsToLatLongs(extras.getStringArrayList("farm_points")));
+
                 case MissionProxy.ACTION_MISSION_PROXY_UPDATE:
                     if (mAppPrefs.isZoomToFitEnable()) {
                         gestureMapFragment.getMapFragment().zoomToFit();
@@ -335,7 +342,6 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             actionBarTelem = new ActionBarTelemFragment();
             fragmentManager.beginTransaction().add(R.id.actionbar_toolbar_top, actionBarTelem, "telemData").commit();
         }
-
 
         if (missionControl == null) {
             missionControl = new DJIMissionImpl();
@@ -536,6 +542,13 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                 showSnackBar("Error: SD card check failed", "");
             }
         });
+    }
+
+    private List<LatLong> convertStringPointsToLatLongs(ArrayList<String> pointStrings){
+        List <LatLong> pointLatLngs = new ArrayList<>();
+        for(String pointString : pointStrings)
+            pointLatLngs.add(new LatLong(Double.valueOf(pointString.split(" ")[0]), Double.valueOf(pointString.split(" ")[1]) ));
+        return pointLatLngs;
     }
 
     private long getNumberofSurveyImages() {
@@ -912,6 +925,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
          */
         List<MissionItemProxy> items = missionProxy.getItems();
         List<LatLong> points = new ArrayList<>();
+
         for (MissionItemProxy itemProxy : items) {
             MissionItem item = itemProxy.getMissionItem();
             if (item instanceof Survey) {
@@ -1306,6 +1320,12 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                 showItemDetail(selectMissionDetailType(selected));
             }
         }
+    }
+
+    //TEST DIKENNA
+    public void OnGoToFarmSelected(List<LatLong> farmPoints){
+        final EditorMapFragment planningMapFragment = gestureMapFragment.getMapFragment();
+        planningMapFragment.zoomToFit(farmPoints);
     }
 
     @Override
