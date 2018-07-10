@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/treesize_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="5dp">
+
+    <TextView
+        android:id="@+id/add_boundary_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center|start"
+        android:paddingStart="@dimen/offline_map_dp_20_in_sw320dp"
+        android:text="Select approximate tree size in metres"
+        android:textAppearance="@style/CustomActionBarTheme.ActionBar.TitleTextStyle"
+        android:textColor="@color/primary_dark_blue"
+        android:textSize="20sp" />
+
+    <RadioGroup
+        android:id="@+id/treesize_radiogroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp">
+
+        <RadioButton
+            android:id="@+id/radioButtonMin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/lessthanzeropointfive"
+            android:textAppearance="@style/AeroboticsCustomHintColor"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButton1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/zeropointfivetoone"
+            android:textAppearance="@style/AeroboticsCustomHintColor"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButton2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="1 - 2"
+            android:textAppearance="@style/AeroboticsCustomHintColor"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/radioButtonMax"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/greaterthantwo"
+            android:textAppearance="@style/AeroboticsCustomHintColor"
+            android:textSize="18sp" />
+    </RadioGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/treesize_cancelbutton"
+            style="@android:style/Widget.Button"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginRight="@dimen/offline_map_dp_5_in_sw320dp"
+            android:background="@color/success"
+            android:text="Cancel"
+            android:layout_weight="1"
+            android:textAppearance="@style/CustomActionBarTheme.ActionBar.TitleTextStyle" />
+
+        <Button
+            android:id="@+id/treesize_gobutton"
+            style="@android:style/Widget.Button"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@color/success"
+            android:text="Apply"
+            android:textAppearance="@style/CustomActionBarTheme.ActionBar.TitleTextStyle" />
+
+    </LinearLayout>
+
+
+
+</LinearLayout>

@@ -739,4 +739,9 @@
     <string name="terms_and_conditions">By clicking this button you agree to Aerobotics\' \n
         Terms and Conditions and Privacy Policy</string>
     <string name="user_id">User ID</string>
+
+    <string name="lessthanzeropointfive">&lt; 0.5</string>
+    <string name="zeropointfivetoone">0.5 - 1</string>
+    <string name="greaterthantwo">&gt; 2</string>
+
 </resources>

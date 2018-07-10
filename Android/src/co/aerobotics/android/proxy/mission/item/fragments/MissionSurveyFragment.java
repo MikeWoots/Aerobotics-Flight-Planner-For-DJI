@@ -1,16 +1,21 @@
 package co.aerobotics.android.proxy.mission.item.fragments;
 
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import co.aerobotics.android.DroidPlannerApp;
 import co.aerobotics.android.data.BoundaryDetail;
@@ -30,6 +35,7 @@ import org.beyene.sius.unit.length.LengthUnit;
 import co.aerobotics.android.R;
 import co.aerobotics.android.R.id;
 import co.aerobotics.android.dialogs.AddBoundaryCheckDialog;
+import co.aerobotics.android.dialogs.TreeSizeDialog;
 import co.aerobotics.android.proxy.mission.MissionProxy;
 import co.aerobotics.android.proxy.mission.item.adapters.CamerasAdapter;
 import co.aerobotics.android.utils.unit.providers.area.AreaUnitProvider;
@@ -39,6 +45,7 @@ import co.aerobotics.android.view.spinnerWheel.adapters.LengthWheelAdapter;
 import co.aerobotics.android.view.spinnerWheel.adapters.NumericWheelAdapter;
 import co.aerobotics.android.view.spinners.SpinnerSelfSelect;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +62,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
             final String action = intent.getAction();
             if (MissionProxy.ACTION_MISSION_PROXY_UPDATE.equals(action)) {
                 updateViews();
+//              updateViewsRecommended();
             }
         }
     };
@@ -97,12 +105,17 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
     public TextView cameraTriggerTimeTextView;
     private CamerasAdapter cameraAdapter;
     private SpinnerSelfSelect cameraSpinner;
-    private Button saveButton;
+    private Button saveButton, optimizeButton;
     private SQLiteDatabaseHandler dbHandler;
     private BoundaryDetail boundaryDetail;
     private MixpanelAPI mMixpanel;
     private RadioButton sunnyButton;
     private RadioButton cloudyButton;
+    private Button goButton, cancelButton;
+    private RadioGroup rg;
+
+    private int tree_size;
+    private boolean recommendedflight;
 
     @Override
     protected int getResource() {
@@ -137,6 +150,42 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
             public void onClick(View view) {
                 mMixpanel.track("FPA: TapSaveMissionButton");
                 new AddBoundaryCheckDialog().show(getFragmentManager(), null);
+            }
+        });
+
+        optimizeButton = (Button) getActivity().findViewById(id.button_recommendSettings);
+        optimizeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                final Dialog dialog = new Dialog(getContext());
+                dialog.setContentView(R.layout.dialog_treesize);
+                dialog.setTitle("");
+                dialog.setCancelable(true);
+                dialog.show();
+
+                goButton = (Button) dialog.findViewById(R.id.treesize_gobutton);
+                cancelButton = (Button) dialog.findViewById(id.treesize_cancelbutton);
+                rg = (RadioGroup) dialog.findViewById(id.treesize_radiogroup);
+                ((RadioButton) rg.findViewById(id.radioButton2)).setChecked(true);
+                goButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        tree_size = rg.indexOfChild(rg.findViewById(rg.getCheckedRadioButtonId()));
+                        dialog.dismiss();
+                        updateViewsRecommended();
+                        onScrollingEnded(mAnglePicker, 0, 0);
+
+                        if(recommendedflight) Toast.makeText(getContext(), "Changes applied", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                cancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss();
+                    }
+                });
             }
         });
 
@@ -197,9 +246,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
         }
 
         getBroadcastManager().registerReceiver(eventReceiver, eventFilter);
-        
     }
-
 
     @Override
     public void onApiDisconnected() {
@@ -231,7 +278,6 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                     final List<T> surveyList = getMissionItems();
                     if (!surveyList.isEmpty()) {
                         for (final T survey : surveyList) {
-
                             SurveyDetail surveyDetail = survey.getSurveyDetail();
                             surveyDetail.setAltitude(mAltitudePicker.getCurrentValue().toBase().getValue());
                             surveyDetail.setSpeed(mSpeedPicker.getCurrentValue());
@@ -255,9 +301,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                             boundaryDetail.setSidelap(mSidelapPicker.getCurrentValue());
                             boundaryDetail.setSpeed(mSpeedPicker.getCurrentValue());
                             boundaryDetail.setCamera(surveyList.get(0).getSurveyDetail().getCameraDetail().toString());
-
                         }
-
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error while building the survey.", e);
@@ -296,7 +340,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
         if (!surveyList.isEmpty()) {
             T survey = surveyList.get(0);
             SurveyDetail surveyDetail = survey.getSurveyDetail();
-            double time = ((survey.getGridLength()) / surveyDetail.getSpeed()) / 60;
+            double time = ( (survey.getGridLength()) / surveyDetail.getSpeed()) / 60;
             double roundedTime = Math.round((time * 2) / 2.0);
             return roundedTime;
         }
@@ -310,6 +354,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
 
             double cameraDistance = survey.getSurveyDetail().getLongitudinalPictureDistance();
             double triggerSpeed = cameraDistance/mSpeedPicker.getCurrentValue();
+
             Log.d("time", Double.toString(triggerSpeed));
             if(triggerSpeed > 2f) {
                 cameraTriggerTimeTextView.setTextColor(getResources().getColor(R.color.dark_title_bg));
@@ -337,6 +382,14 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
 
         updateTextViews();
         updateSeekBars();
+    }
+
+    private void updateViewsRecommended() {
+        if (getActivity() == null)
+            return;
+
+        updateTextViews();
+        updateSeekBarsToRecommendedSettings();
     }
 
     private void updateCamera() {
@@ -381,12 +434,86 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                 mAnglePicker.setCurrentValue((int) surveyDetail.getAngle());
                 mOverlapPicker.setCurrentValue((int) surveyDetail.getOverlap());
                 mSidelapPicker.setCurrentValue((int) surveyDetail.getSidelap());
-                mSpeedPicker.setCurrentValue((int) surveyDetail.getSpeed());
                 mAltitudePicker.setCurrentValue(getLengthUnitProvider().boxBaseValueToTarget(surveyDetail.getAltitude()));
+                mSpeedPicker.setCurrentValue((int) surveyDetail.getSpeed());
             }
-
             checkIfValid(survey);
         }
+    }
+
+    private void updateSeekBarsToRecommendedSettings(){
+        List<T> surveyList = getMissionItems();
+        if (!surveyList.isEmpty()) {
+            T survey = surveyList.get(0);
+            SurveyDetail surveyDetail = survey.getSurveyDetail();
+            if (surveyDetail != null) {
+                mAnglePicker.setCurrentValue((int) surveyDetail.getAngle());
+                mOverlapPicker.setCurrentValue((int) surveyDetail.getOverlap());
+                mSidelapPicker.setCurrentValue((int) surveyDetail.getSidelap());
+                mAltitudePicker.setCurrentValue(getLengthUnitProvider().boxBaseValueToTarget( surveyDetail.getReccommendedAltitude(getRecommendedResolution())));
+                //Find mean of best speed for flight time and best speed for camera trigger speed
+                //Double desired_speed = (((survey.getGridLength()) / (16.1 * 60))+(survey.getSurveyDetail().getLongitudinalPictureDistance() / 2.1)) / 2;
+
+                //Or set speed to whatever will allow it to finish in 14-15 seconds... The slowest it can afford to go...
+                Double desired_speed = Math.ceil((survey.getGridLength()) / (14 * 60));
+                mSpeedPicker.setCurrentValue( desired_speed.intValue() );
+                if(desired_speed > 14.0) {
+                    Toast.makeText(getContext(), "Flight unrecommended: Mission too long.", Toast.LENGTH_SHORT).show();
+                    mSpeedPicker.setCurrentValue(14);
+                    recommendedflight=false;
+                } else recommendedflight = true;
+            }
+            checkIfValid(survey);
+        }
+    }
+
+//    //Dikenna Test
+//    private List<Double> getRecommendedAircraftSpeed(){
+//        List<T> surveyList = getMissionItems();
+//        Double speed_flighttime;      //drone speed optimised for flight time < 16s
+//        Double speed_cameratrigger;   //drone speed optimised for camera trigger > 2s
+//        List<Double> x = new ArrayList<>();
+//
+//        if (!surveyList.isEmpty()) {
+//            T survey = surveyList.get(0);
+//            SurveyDetail surveyDetail = survey.getSurveyDetail();
+//
+//            //min drone speed for flight time < 16s
+//            System.out.println("\nSurvey.gridlength is: " + survey.getGridLength());
+//            speed_flighttime = (survey.getGridLength()) / (16.2 * 60); //max time is 16.0 secs
+//            System.out.println("Speed optimized for flight time: " + speed_flighttime );
+//
+//            //max drone speed for camera trigger speed > 2s
+//            System.out.println("\nSurvey.getLongitudinalPictureDistance is: " + survey.getSurveyDetail().getLongitudinalPictureDistance());
+//            speed_cameratrigger = survey.getSurveyDetail().getLongitudinalPictureDistance() / 2.1; //min trigger speed = 2.1 secs
+//            System.out.println("Speed optimized for camera trigger speed: " + speed_cameratrigger );
+//
+//            //desired drone speed x : 4m/s <= speed_flighttime < x < speed_cameratrigger < 14m/s
+//            Double min_speed = speed_flighttime;
+//            while(speed_cameratrigger > speed_flighttime &&  min_speed >= 4 && min_speed <= 14)
+//                x.add( Math.ceil(min_speed++));
+//            if(!x.isEmpty()) x.remove(x.get(x.size()-1));
+//            else x.add(surveyDetail.getSpeed());
+//        }
+//
+//        System.out.println("*** Speed Picker Test ***: ");
+//        for(Double y : x) System.out.println("---> " + y);
+//
+//        return x;
+//    }
+
+    private double getRecommendedResolution(){
+        int pixels = 0; double radius = 0;
+
+        switch(tree_size){
+            case 0: pixels = 50; radius = 250; return 85;  //alt 70   //smallest tree < 0.5m
+            case 1: pixels = 43; radius = 1000; return 100;   //alt 76
+            case 2: pixels = 37; radius = 1500; return 123;   //alt 84
+            case 3: pixels = 30; radius = 2000; return 141;  //alt 90  //biggest trees > 2m
+        }
+
+        System.out.println("Suggested INACCURATE resolution = "  +  Math.PI * radius * radius / pixels / radius + " mm^2/px");
+        return (Math.PI * radius * radius / pixels / 1000);
     }
 
     private void updateTextViews() {

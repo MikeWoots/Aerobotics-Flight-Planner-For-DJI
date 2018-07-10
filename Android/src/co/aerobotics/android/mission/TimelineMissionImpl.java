@@ -169,7 +169,6 @@ public class TimelineMissionImpl extends DJIMissionImpl {
                 break;
             default:
                 break;
-
         }
     }
 

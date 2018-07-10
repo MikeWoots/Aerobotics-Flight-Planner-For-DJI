@@ -87,6 +87,7 @@ public class AddBoundaryCheckDialog extends DialogFragment implements APIContrac
         initializeCropTypeAdapter();
         initializeCropTypeSpinner();
         final AlertDialog dialog = buildDialog();
+
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialogInterface) {

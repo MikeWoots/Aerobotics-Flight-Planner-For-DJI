@@ -168,6 +168,19 @@
                     </GridLayout>
                 </HorizontalScrollView>
 
+                <Button
+                    android:id="@+id/button_recommendSettings"
+                    style="@android:style/Widget.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:background="@color/success"
+                    android:elevation="0dp"
+                    android:hint="Recommends drone flight setting optimized for trees on the @string/switch_farm"
+                    android:text="Recommend Settings"
+                    android:textAppearance="@style/CustomActionBarTheme.ActionBar.TitleTextStyle" />
+
                 <co.aerobotics.android.view.spinnerWheel.CardWheelHorizontalView
                     android:id="@+id/anglePicker"
                     style="@style/missionItemDetailCard"
