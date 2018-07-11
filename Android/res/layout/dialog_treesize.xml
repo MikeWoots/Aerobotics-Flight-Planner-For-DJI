@@ -7,18 +7,38 @@
     android:orientation="vertical"
     android:padding="5dp">
 
-    <TextView
-        android:id="@+id/add_boundary_title"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:gravity="center|start"
-        android:paddingStart="@dimen/offline_map_dp_20_in_sw320dp"
-        android:text="Select approximate tree size in metres"
-        android:textAppearance="@style/CustomActionBarTheme.ActionBar.TitleTextStyle"
-        android:textColor="@color/primary_dark_blue"
-        android:textSize="20sp" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/add_boundary_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginEnd="5dp"
+            android:layout_weight="1"
+            android:gravity="center|start"
+            android:text="Select approximate tree diameter in metres"
+            android:textAppearance="@style/CustomActionBarTheme.ActionBar.TitleTextStyle"
+            android:textColor="@color/primary_dark_blue"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/treesize_infobutton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/infobutton"
+            android:text="i"
+            android:textAlignment="center"
+            android:textAppearance="@style/AeroboticsCustomHintColor"
+            android:textSize="18sp"
+            android:textStyle="bold|italic" />
+
+    </LinearLayout>
+
 
     <RadioGroup
         android:id="@+id/treesize_radiogroup"

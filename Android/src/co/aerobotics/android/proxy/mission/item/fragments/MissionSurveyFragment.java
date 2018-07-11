@@ -115,7 +115,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
     public TextView cameraTriggerTimeTextView;
     private CamerasAdapter cameraAdapter;
     private SpinnerSelfSelect cameraSpinner;
-    private Button saveButton, optimizeButton;
+    private Button saveButton, optimizeButton, infoButton;
     private SQLiteDatabaseHandler dbHandler;
     private BoundaryDetail boundaryDetail;
     private MixpanelAPI mMixpanel;
@@ -168,12 +168,13 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
             public void onClick(View view) {
                 final Dialog dialog = new Dialog(getContext());
                 dialog.setContentView(R.layout.dialog_treesize);
-                dialog.setTitle("");
+                dialog.setTitle("Recommend Settings");
                 dialog.setCancelable(true);
                 dialog.show();
 
                 goButton = (Button) dialog.findViewById(R.id.treesize_gobutton);
                 cancelButton = (Button) dialog.findViewById(id.treesize_cancelbutton);
+                infoButton = (Button) dialog.findViewById(id.treesize_infobutton);
                 rg = (RadioGroup) dialog.findViewById(id.treesize_radiogroup);
                 ((RadioButton)rg.getChildAt(tree_size)).setChecked(true);
 
@@ -194,6 +195,23 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                     @Override
                     public void onClick(View view) {
                         dialog.dismiss();
+                    }
+                });
+
+                infoButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        final Dialog dialog = new Dialog(getContext());
+                        dialog.setContentView(R.layout.dialog_treesize_info);
+                        dialog.setTitle("Info");
+                        dialog.setCancelable(true);
+                        dialog.show();
+                        dialog.findViewById(id.textView6).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                dialog.dismiss();
+                            }
+                        });
                     }
                 });
             }
@@ -471,7 +489,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                 System.out.println("Survey.getgrid length (UpdateSeekBarsRecommended) SPEED CEIL = " + Math.ceil(updated_gridlength.get(0) / (15 * 60)) + "\n\n");
 
                 mSpeedPicker.setCurrentValue(desired_speed.intValue());
-                if(desired_speed > 14.0) {
+                if(desired_speed > 14.0 || getCameraTriggerTime() < 2.0) {
                     Toast.makeText(getContext(), "Flight unrecommended: Mission too long.", Toast.LENGTH_SHORT).show();
                     mSpeedPicker.setCurrentValue(14);
                     recommendedflight = false;
@@ -483,18 +501,18 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
     }
 
     private double getRecommendedResolution(){
-        int pixels = 0; double radius = 0;
+        int pixels = 0; double diameter = 0;
 
         switch(tree_size){
-            case 0: pixels = 50; radius = 250;  return 85;    //alt 70   //smallest tree < 0.5m
-            case 1: pixels = 43; radius = 1000; return 100;   //alt 76
-            case 2: pixels = 37; radius = 1500; return 123;   //alt 84
-            case 3: pixels = 30; radius = 2000; return 141;   //alt 90  //biggest trees > 2m
+            case 0: pixels = 54; diameter = 250;  return 85;    //alt 70   //smallest tree < 0.5m
+            case 1: pixels = 100; diameter = 1000; return 100;   //alt 76
+            case 2: pixels = 135; diameter = 1500; return 123;   //alt 84
+            case 3: pixels = 180; diameter = 2000; return 141;   //alt 90  //biggest trees > 2m
         }
 
         //work on 11th july
-        System.out.println("Suggested INACCURATE resolution = "  +  Math.PI * radius * radius / pixels / radius + " mm^2/px");
-        return (Math.PI * radius * radius / pixels / 1000);
+        System.out.println("Suggested INACCURATE resolution = "  + (diameter*diameter)/(pixels*pixels) + " mm^2/px");
+        return ((diameter*diameter)/(pixels*pixels));
     }
 
     private void updateTextViews() {
