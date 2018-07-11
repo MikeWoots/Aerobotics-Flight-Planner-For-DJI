@@ -55,14 +55,24 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
 
     private static final String TAG = MissionSurveyFragment.class.getSimpleName();
     private static final IntentFilter eventFilter = new IntentFilter(MissionProxy.ACTION_MISSION_PROXY_UPDATE);
+    private List<Double> updated_gridlength;
 
     private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
+            updated_gridlength = new ArrayList<>();
+
             if (MissionProxy.ACTION_MISSION_PROXY_UPDATE.equals(action)) {
-                updateViews();
-//              updateViewsRecommended();
+                for (T survey : getMissionItems()) updated_gridlength.add(survey.getGridLength());
+
+                if(!recommendedflight) updateViews();
+                else {
+                    System.out.println("Survey.getgrid length on receive: " + updated_gridlength);
+                    updateViewsRecommended();
+                    onScrollingEnded(mAnglePicker, 0, 0);
+                    recommendedflight=false;
+                }
             }
         }
     };
@@ -113,8 +123,7 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
     private RadioButton cloudyButton;
     private Button goButton, cancelButton;
     private RadioGroup rg;
-
-    private int tree_size;
+    private int tree_size = 2;
     private boolean recommendedflight;
 
     @Override
@@ -157,7 +166,6 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
         optimizeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 final Dialog dialog = new Dialog(getContext());
                 dialog.setContentView(R.layout.dialog_treesize);
                 dialog.setTitle("");
@@ -167,16 +175,18 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                 goButton = (Button) dialog.findViewById(R.id.treesize_gobutton);
                 cancelButton = (Button) dialog.findViewById(id.treesize_cancelbutton);
                 rg = (RadioGroup) dialog.findViewById(id.treesize_radiogroup);
-                ((RadioButton) rg.findViewById(id.radioButton2)).setChecked(true);
+                ((RadioButton)rg.getChildAt(tree_size)).setChecked(true);
+
                 goButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         tree_size = rg.indexOfChild(rg.findViewById(rg.getCheckedRadioButtonId()));
                         dialog.dismiss();
+
                         updateViewsRecommended();
                         onScrollingEnded(mAnglePicker, 0, 0);
 
-                        if(recommendedflight) Toast.makeText(getContext(), "Changes applied", Toast.LENGTH_SHORT).show();
+                        if(recommendedflight) Toast.makeText(getContext(),"Changes applied", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -257,12 +267,12 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
 
     @Override
     public void onScrollingStarted(CardWheelHorizontalView cardWheel, Object startValue) {
-
+        recommendedflight = false;
     }
 
     @Override
     public void onScrollingUpdate(CardWheelHorizontalView cardWheel, Object oldValue, Object newValue) {
-
+        recommendedflight = false;
     }
 
     @Override
@@ -287,11 +297,11 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                         }
 
                         getAppPrefs().persistSurveyPreferences(surveyList.get(0));
-
                         final MissionItem.ComplexItem<T>[] surveys = surveyList
                                 .toArray(new MissionItem.ComplexItem[surveyList.size()]);
 
                         drone.buildMissionItemsAsync(surveys, this);
+
                         if(null != surveyList.get(0).getID()) {
                             boundaryDetail = dbHandler.getBoundaryDetail(surveyList.get(0).getID());
                             boundaryDetail.setBoundaryId(surveyList.get(0).getID());
@@ -380,16 +390,16 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
         if (getActivity() == null)
             return;
 
-        updateTextViews();
         updateSeekBars();
+        updateTextViews();
     }
 
     private void updateViewsRecommended() {
         if (getActivity() == null)
             return;
 
-        updateTextViews();
         updateSeekBarsToRecommendedSettings();
+        updateTextViews();
     }
 
     private void updateCamera() {
@@ -455,63 +465,34 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
                 //Double desired_speed = (((survey.getGridLength()) / (16.1 * 60))+(survey.getSurveyDetail().getLongitudinalPictureDistance() / 2.1)) / 2;
 
                 //Or set speed to whatever will allow it to finish in 14-15 seconds... The slowest it can afford to go...
-                Double desired_speed = Math.ceil((survey.getGridLength()) / (14 * 60));
-                mSpeedPicker.setCurrentValue( desired_speed.intValue() );
+                Double desired_speed = Math.ceil((updated_gridlength.get(0)) / (15 * 60));
+                System.out.println("Survey.getgrid length (UpdateSeekBarsRecommended) = " + updated_gridlength.get(0) + "\n\n");
+                System.out.println("Survey.getgrid length (UpdateSeekBarsRecommended) SPEED = " + (updated_gridlength.get(0)/(15 * 60)) + "\n\n");
+                System.out.println("Survey.getgrid length (UpdateSeekBarsRecommended) SPEED CEIL = " + Math.ceil(updated_gridlength.get(0) / (15 * 60)) + "\n\n");
+
+                mSpeedPicker.setCurrentValue(desired_speed.intValue());
                 if(desired_speed > 14.0) {
                     Toast.makeText(getContext(), "Flight unrecommended: Mission too long.", Toast.LENGTH_SHORT).show();
                     mSpeedPicker.setCurrentValue(14);
-                    recommendedflight=false;
+                    recommendedflight = false;
                 } else recommendedflight = true;
+
             }
             checkIfValid(survey);
         }
     }
 
-//    //Dikenna Test
-//    private List<Double> getRecommendedAircraftSpeed(){
-//        List<T> surveyList = getMissionItems();
-//        Double speed_flighttime;      //drone speed optimised for flight time < 16s
-//        Double speed_cameratrigger;   //drone speed optimised for camera trigger > 2s
-//        List<Double> x = new ArrayList<>();
-//
-//        if (!surveyList.isEmpty()) {
-//            T survey = surveyList.get(0);
-//            SurveyDetail surveyDetail = survey.getSurveyDetail();
-//
-//            //min drone speed for flight time < 16s
-//            System.out.println("\nSurvey.gridlength is: " + survey.getGridLength());
-//            speed_flighttime = (survey.getGridLength()) / (16.2 * 60); //max time is 16.0 secs
-//            System.out.println("Speed optimized for flight time: " + speed_flighttime );
-//
-//            //max drone speed for camera trigger speed > 2s
-//            System.out.println("\nSurvey.getLongitudinalPictureDistance is: " + survey.getSurveyDetail().getLongitudinalPictureDistance());
-//            speed_cameratrigger = survey.getSurveyDetail().getLongitudinalPictureDistance() / 2.1; //min trigger speed = 2.1 secs
-//            System.out.println("Speed optimized for camera trigger speed: " + speed_cameratrigger );
-//
-//            //desired drone speed x : 4m/s <= speed_flighttime < x < speed_cameratrigger < 14m/s
-//            Double min_speed = speed_flighttime;
-//            while(speed_cameratrigger > speed_flighttime &&  min_speed >= 4 && min_speed <= 14)
-//                x.add( Math.ceil(min_speed++));
-//            if(!x.isEmpty()) x.remove(x.get(x.size()-1));
-//            else x.add(surveyDetail.getSpeed());
-//        }
-//
-//        System.out.println("*** Speed Picker Test ***: ");
-//        for(Double y : x) System.out.println("---> " + y);
-//
-//        return x;
-//    }
-
     private double getRecommendedResolution(){
         int pixels = 0; double radius = 0;
 
         switch(tree_size){
-            case 0: pixels = 50; radius = 250; return 85;  //alt 70   //smallest tree < 0.5m
+            case 0: pixels = 50; radius = 250;  return 85;    //alt 70   //smallest tree < 0.5m
             case 1: pixels = 43; radius = 1000; return 100;   //alt 76
             case 2: pixels = 37; radius = 1500; return 123;   //alt 84
-            case 3: pixels = 30; radius = 2000; return 141;  //alt 90  //biggest trees > 2m
+            case 3: pixels = 30; radius = 2000; return 141;   //alt 90  //biggest trees > 2m
         }
 
+        //work on 11th july
         System.out.println("Suggested INACCURATE resolution = "  +  Math.PI * radius * radius / pixels / radius + " mm^2/px");
         return (Math.PI * radius * radius / pixels / 1000);
     }

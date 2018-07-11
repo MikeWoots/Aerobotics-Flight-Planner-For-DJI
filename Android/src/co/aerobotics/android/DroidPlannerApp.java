@@ -136,7 +136,6 @@ public class DroidPlannerApp extends MultiDexApplication implements DroneListene
                         disconnectFromDrone();
                     break;
 
-
             }
         }
     };
@@ -565,8 +564,9 @@ public class DroidPlannerApp extends MultiDexApplication implements DroneListene
 
         handler.removeCallbacks(disconnectionTask);
         boolean isTowerConnected = controlTower.isTowerConnected();
-        if (isTowerConnected)
+        if (isTowerConnected) {
             listener.onApiConnected();
+        }
 
         if (!isTowerConnected) {
             try {
