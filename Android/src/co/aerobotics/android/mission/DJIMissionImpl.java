@@ -15,9 +15,11 @@ import android.widget.Toast;
 import co.aerobotics.android.DroidPlannerApp;
 import co.aerobotics.android.R;
 import co.aerobotics.android.data.CSVReader;
+import co.aerobotics.android.data.DJIFlightControllerState;
 import co.aerobotics.android.data.GpsTracker;
 import co.aerobotics.android.data.SQLiteDatabaseHandler;
 import co.aerobotics.android.data.WaypointMissionDebugTxt;
+import co.aerobotics.android.droneshare.UploaderService;
 import co.aerobotics.android.media.ImageImpl;
 import co.aerobotics.android.proxy.mission.MissionProxy;
 
@@ -26,6 +28,8 @@ import com.o3dr.services.android.lib.coordinate.LatLong;
 import com.o3dr.services.android.lib.drone.mission.item.MissionItem;
 import com.o3dr.services.android.lib.drone.mission.item.complex.Survey;
 import com.o3dr.services.android.lib.drone.mission.item.complex.SurveyDetail;
+
+import org.droidplanner.services.android.impl.core.drone.autopilot.Drone;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -40,6 +44,10 @@ import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.SmartRTHState;
+import dji.common.flightcontroller.virtualstick.FlightControlData;
+import dji.common.flightcontroller.virtualstick.RollPitchControlMode;
+import dji.common.flightcontroller.virtualstick.VerticalControlMode;
+import dji.common.flightcontroller.virtualstick.YawControlMode;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
 import dji.common.mission.waypoint.Waypoint;
@@ -55,6 +63,7 @@ import dji.common.util.CommonCallbacks;
 import dji.keysdk.FlightControllerKey;
 import dji.keysdk.KeyManager;
 import dji.keysdk.callback.ActionCallback;
+import dji.keysdk.callback.KeyListener;
 import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightAssistant;
 import dji.sdk.flightcontroller.FlightController;
@@ -67,6 +76,7 @@ import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
 import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKManager;
+
 
 /**
  * Created by michaelwootton on 8/21/17.
@@ -206,6 +216,8 @@ public class DJIMissionImpl {
             DroidPlannerApp.getInstance().getFirmwareVersion();
         }
         final FlightController flightController = ((Aircraft) DroidPlannerApp.getProductInstance()).getFlightController();
+
+
         flightController.setMaxFlightHeight(200, new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError djiError) {
@@ -483,8 +495,9 @@ public class DJIMissionImpl {
         float imageDistance = missionDetails.getImageDistance();
         float altitude = missionDetails.getAltitude();
 
+
         if(terrain_follow) loadCSV();
-        //Check if all the wayoing latlongs are in the csv file. If not, turn terrain following off.
+        //Check if all the wayoint latlongs are in the csv file. If not, turn terrain following off.
 
         //generate list of waypoint objects from lat, long, altitude
         List<Waypoint> waypointList = new ArrayList<>();
@@ -560,7 +573,6 @@ public class DJIMissionImpl {
                                 Log.d(TAG, "Upload Success");
                             } else {
                                 Log.e(TAG, "Upload Failed");
-
                             }
                         }
                     }));

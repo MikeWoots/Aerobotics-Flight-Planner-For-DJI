@@ -510,7 +510,6 @@ public class MissionSurveyFragment<T extends Survey> extends MissionDetailFragme
             case 3: pixels = 180; diameter = 2000; return 141;   //alt 90  //biggest trees > 2m
         }
 
-        //work on 11th july
         System.out.println("Suggested INACCURATE resolution = "  + (diameter*diameter)/(pixels*pixels) + " mm^2/px");
         return ((diameter*diameter)/(pixels*pixels));
     }
