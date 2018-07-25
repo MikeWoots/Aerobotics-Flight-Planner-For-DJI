@@ -169,8 +169,11 @@ public class SignUpActivity extends AppCompatActivity{
             cancel = true;
         }
 
-        //Check for a valid phone number
-
+        if (TextUtils.isEmpty(phoneNumber)) {
+            mPhoneNumberView.setError(getString(R.string.error_field_required));
+            focusView = mPhoneNumberView;
+            cancel = true;
+        }
 
         if (TextUtils.isEmpty(firstName)){
             mFirstNameView.setError(getString(R.string.error_field_required));
@@ -204,7 +207,7 @@ public class SignUpActivity extends AppCompatActivity{
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
             showProgress(true);
-            mAuthTask = new SignUpActivity.UserSignUpTask(email, firstName, lastName, password);
+            mAuthTask = new SignUpActivity.UserSignUpTask(email, firstName, lastName, password, phoneNumber);
             mAuthTask.execute((Void) null);
         }
 
@@ -269,19 +272,21 @@ public class SignUpActivity extends AppCompatActivity{
         private String firstName;
         private String lastName;
         private String password;
+        private String phoneNumber;
 
-        UserSignUpTask(String email, String firstName, String lastName, String password){
+        UserSignUpTask(String email, String firstName, String lastName, String password, String phoneNumber){
 
             this.email = email;
             this.firstName = firstName;
             this.lastName = lastName;
             this.password = password;
+            this.phoneNumber = phoneNumber;
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
             Authentication authentication = new Authentication(SignUpActivity.this.getApplicationContext());
-            if (authentication.createUser(firstName, lastName, email, email, password)) {
+            if (authentication.createUser(firstName, lastName, email, email, password, phoneNumber)) {
                 Login login = new Login(SignUpActivity.this.getApplicationContext(), email, password);
                 return login.authenticateUser();
             }
