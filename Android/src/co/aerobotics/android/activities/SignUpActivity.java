@@ -43,7 +43,7 @@ import java.util.Objects;
  * Created by michaelwootton on 9/5/17.
  */
 
-public class SignUpActivity extends AppCompatActivity {
+public class SignUpActivity extends AppCompatActivity{
     private UserSignUpTask mAuthTask = null;
 
     private EditText mEmailView;
@@ -51,6 +51,7 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText mPasswordConfirmView;
     private EditText mFirstNameView;
     private EditText mLastNameView;
+    private EditText mPhoneNumberView;
     private Button mSignUpButton;
     private View mSignUpForm;
     private View mProgressView;
@@ -66,10 +67,12 @@ public class SignUpActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.signup_progress_bar);
 
         mEmailView = (EditText) findViewById(R.id.signup_email);
+        mPhoneNumberView = (EditText) findViewById(R.id.signup_phonenumber);
         mPasswordView = (EditText) findViewById(R.id.signup_password);
         mPasswordConfirmView = (EditText) findViewById(R.id.signup_password_confirm);
         mFirstNameView = (EditText) findViewById(R.id.first_name);
         mLastNameView = (EditText) findViewById(R.id.last_name);
+
         final ImageView mImageView = (ImageView) findViewById(R.id.aeroview_signup);
 
         mSignUpButton = (Button) findViewById(R.id.signup_button);
@@ -131,7 +134,7 @@ public class SignUpActivity extends AppCompatActivity {
         String passwordConfirm = mPasswordConfirmView.getText().toString();
         String firstName = mFirstNameView.getText().toString();
         String lastName = mLastNameView.getText().toString();
-
+        String phoneNumber = mPhoneNumberView.getText().toString();
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(password)) {
@@ -163,6 +166,12 @@ public class SignUpActivity extends AppCompatActivity {
         } else if (!isEmailValid(email)) {
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
+            cancel = true;
+        }
+
+        if (TextUtils.isEmpty(phoneNumber)) {
+            mPhoneNumberView.setError(getString(R.string.error_field_required));
+            focusView = mPhoneNumberView;
             cancel = true;
         }
 
@@ -198,7 +207,7 @@ public class SignUpActivity extends AppCompatActivity {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
             showProgress(true);
-            mAuthTask = new SignUpActivity.UserSignUpTask(email, firstName, lastName, password);
+            mAuthTask = new SignUpActivity.UserSignUpTask(email, firstName, lastName, password, phoneNumber);
             mAuthTask.execute((Void) null);
         }
 
@@ -263,19 +272,21 @@ public class SignUpActivity extends AppCompatActivity {
         private String firstName;
         private String lastName;
         private String password;
+        private String phoneNumber;
 
-        UserSignUpTask(String email, String firstName, String lastName, String password){
+        UserSignUpTask(String email, String firstName, String lastName, String password, String phoneNumber){
 
             this.email = email;
             this.firstName = firstName;
             this.lastName = lastName;
             this.password = password;
+            this.phoneNumber = phoneNumber;
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
             Authentication authentication = new Authentication(SignUpActivity.this.getApplicationContext());
-            if (authentication.createUser(firstName, lastName, email, email, password)) {
+            if (authentication.createUser(firstName, lastName, email, email, password, phoneNumber)) {
                 Login login = new Login(SignUpActivity.this.getApplicationContext(), email, password);
                 return login.authenticateUser();
             }

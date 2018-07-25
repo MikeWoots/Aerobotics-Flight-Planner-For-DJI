@@ -724,16 +724,19 @@
     <!-- Strings related to login -->
     <string name="create_account">Create AeroView account</string>
     <string name="prompt_email">Email Address</string>
+    <string name="prompt_phonenumber">Phone Number</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Login</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_phonenumber">This number is invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
     <string name="app_intro">Intro</string>
     <string name="error_passwords_not_match">Passwords Do Not Match</string>
     <string name="terms_and_conditions">By clicking this button you agree to Aerobotics\' \n
