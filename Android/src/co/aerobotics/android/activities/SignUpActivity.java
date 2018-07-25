@@ -43,7 +43,7 @@ import java.util.Objects;
  * Created by michaelwootton on 9/5/17.
  */
 
-public class SignUpActivity extends AppCompatActivity {
+public class SignUpActivity extends AppCompatActivity{
     private UserSignUpTask mAuthTask = null;
 
     private EditText mEmailView;
@@ -51,6 +51,7 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText mPasswordConfirmView;
     private EditText mFirstNameView;
     private EditText mLastNameView;
+    private EditText mPhoneNumberView;
     private Button mSignUpButton;
     private View mSignUpForm;
     private View mProgressView;
@@ -66,10 +67,12 @@ public class SignUpActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.signup_progress_bar);
 
         mEmailView = (EditText) findViewById(R.id.signup_email);
+        mPhoneNumberView = (EditText) findViewById(R.id.signup_phonenumber);
         mPasswordView = (EditText) findViewById(R.id.signup_password);
         mPasswordConfirmView = (EditText) findViewById(R.id.signup_password_confirm);
         mFirstNameView = (EditText) findViewById(R.id.first_name);
         mLastNameView = (EditText) findViewById(R.id.last_name);
+
         final ImageView mImageView = (ImageView) findViewById(R.id.aeroview_signup);
 
         mSignUpButton = (Button) findViewById(R.id.signup_button);
@@ -131,7 +134,7 @@ public class SignUpActivity extends AppCompatActivity {
         String passwordConfirm = mPasswordConfirmView.getText().toString();
         String firstName = mFirstNameView.getText().toString();
         String lastName = mLastNameView.getText().toString();
-
+        String phoneNumber = mPhoneNumberView.getText().toString();
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(password)) {
@@ -165,6 +168,9 @@ public class SignUpActivity extends AppCompatActivity {
             focusView = mEmailView;
             cancel = true;
         }
+
+        //Check for a valid phone number
+
 
         if (TextUtils.isEmpty(firstName)){
             mFirstNameView.setError(getString(R.string.error_field_required));
