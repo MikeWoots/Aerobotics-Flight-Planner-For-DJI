@@ -69,7 +69,10 @@ import dji.sdk.flightcontroller.FlightAssistant;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.mission.MissionControl;
-import dji.sdk.mission.timeline.Mission;
+//import dji.sdk.mission.timeline.Mission;
+
+import dji.sdk.mission.timeline.TimelineMission;
+
 import dji.sdk.mission.timeline.TimelineElement;
 import dji.sdk.mission.timeline.TimelineEvent;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
@@ -94,7 +97,7 @@ public class DJIMissionImpl {
 
     private WaypointMissionOperator instance;
     public boolean cameraStarted = false;
-    private boolean terrain_follow = false;
+    //private boolean terrain_follow = false;
     private Intent intent;
     public ImageImpl imageImpl;
     private SurveyDetail surveyDetail;
@@ -211,7 +214,7 @@ public class DJIMissionImpl {
     Mission Operations
      */
 
-    public void initializeMission(MissionProxy missionProxy, final Context context, boolean resume, boolean terrain_follow) {
+    public void initializeMission(MissionProxy missionProxy, final Context context, boolean resume) {
         if (DroidPlannerApp.isFirmwareNewVersion() == null) {
             DroidPlannerApp.getInstance().getFirmwareVersion();
         }
@@ -238,7 +241,7 @@ public class DJIMissionImpl {
         });
 
         this.context = context;
-        this.terrain_follow = terrain_follow;
+        //this.terrain_follow = terrain_follow;
 
         sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         List<MissionDetails> missionsToSurvey;
@@ -308,7 +311,7 @@ public class DJIMissionImpl {
     private List<TimelineElement> getTimelineElements(List<WaypointMission> waypointMissions) {
         List<TimelineElement> elements = new ArrayList<>();
         for (WaypointMission mission : waypointMissions) {
-            elements.add(Mission.elementFromWaypointMission(mission));
+            elements.add(TimelineMission.elementFromWaypointMission(mission));
         }
         return elements;
     }
@@ -495,8 +498,9 @@ public class DJIMissionImpl {
         float imageDistance = missionDetails.getImageDistance();
         float altitude = missionDetails.getAltitude();
 
+        System.out.println("***" + points);
 
-        if(terrain_follow) loadCSV();
+        //if(terrain_follow) loadCSV();
         //Check if all the wayoint latlongs are in the csv file. If not, turn terrain following off.
 
         //generate list of waypoint objects from lat, long, altitude
@@ -505,17 +509,17 @@ public class DJIMissionImpl {
             LatLng pointLatLng = new LatLng(point.getLatitude(), point.getLongitude());
 
             float final_altitude = altitude;
-            if(terrain_follow) {
-                final_altitude = getAdjustedAltitude(missionDetails, point, points);
-                if(final_altitude==0)
-                    final_altitude = missionDetails.getAltitude();
-            }
+//            if(terrain_follow) {
+//                final_altitude = getAdjustedAltitude(missionDetails, point, points);
+//                if(final_altitude==0)
+//                    final_altitude = missionDetails.getAltitude();
+//            }
 
-            Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, final_altitude);
+            Waypoint mWaypoint = new Waypoint(pointLatLng.latitude, pointLatLng.longitude, altitude);
             waypointList.add(mWaypoint);
         }
 
-        if(terrain_follow) wp_textfile.createText();
+//        if(terrain_follow) wp_textfile.createText();
 
         //add waypoints to builder
         waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());

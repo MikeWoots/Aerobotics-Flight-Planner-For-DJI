@@ -509,7 +509,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putBoolean(EditorActivity.this.getString(R.string.mission_aborted), false);
                         editor.apply();
-                        missionControl.initializeMission(missionProxy, getApplicationContext(), resumePreviousMission, terrainFollow);
+                        missionControl.initializeMission(missionProxy, getApplicationContext(), resumePreviousMission);
                         resumePreviousMission = false;
                         /*
                         ]
@@ -961,7 +961,8 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             });
             builder.setView(dialogView);
 
-        } else {
+        }
+        else {
             View dialogView = inflater.inflate(R.layout.dialog_terrain_follow, null);
             final CheckBox terrainFollowCheck = (CheckBox) dialogView.findViewById(R.id.activateTerrainFollowCheckBox);
             terrainFollowCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

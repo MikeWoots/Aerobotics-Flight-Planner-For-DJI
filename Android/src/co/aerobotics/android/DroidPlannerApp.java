@@ -19,6 +19,7 @@ import android.support.multidex.MultiDexApplication;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.text.method.BaseKeyListener;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -75,7 +76,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import dji.common.camera.SDCardState;
+//import dji.common.camera.SDCardState;
+import dji.common.camera.SSDState;
+
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.common.util.CommonCallbacks;
@@ -339,7 +342,8 @@ public class DroidPlannerApp extends MultiDexApplication implements DroneListene
     private RefWatcher refWatcher;
 
     public Handler mHandler;
-    private BaseProduct.BaseProductListener mDJIBaseProductListener;
+    //private BaseProduct.BaseProductListener mDJIBaseProductListener;
+
     private BaseComponent.ComponentListener mDJIComponentListener;
     private static BaseProduct mProduct;
     @Override
@@ -374,21 +378,21 @@ public class DroidPlannerApp extends MultiDexApplication implements DroneListene
             aeroviewPolygons.addPolygonsToMap();
         }
 
-        mDJIBaseProductListener = new BaseProduct.BaseProductListener() {
-            @Override
-            public void onComponentChange(BaseProduct.ComponentKey key, BaseComponent oldComponent, BaseComponent newComponent) {
-                if(newComponent != null) {
-                    newComponent.setComponentListener(mDJIComponentListener);
-                    getFirmwareVersion();
-                }
-                notifyStatusChange();
-            }
-            @Override
-            public void onConnectivityChange(boolean isConnected) {
-                mixpanelInstance.track("FPA: ConnectedToDrone");
-                notifyStatusChange();
-            }
-        };
+//        mDJIBaseProductListener = new BaseProduct.BaseProductListener() {
+//            @Override
+//            public void onComponentChange(BaseProduct.ComponentKey key, BaseComponent oldComponent, BaseComponent newComponent) {
+//                if(newComponent != null) {
+//                    newComponent.setComponentListener(mDJIComponentListener);
+//                    getFirmwareVersion();
+//                }
+//                notifyStatusChange();
+//            }
+//            @Override
+//            public void onConnectivityChange(boolean isConnected) {
+//                mixpanelInstance.track("FPA: ConnectedToDrone");
+//                notifyStatusChange();
+//            }
+//        };
 
         mDJIComponentListener = new BaseComponent.ComponentListener() {
             @Override
@@ -404,7 +408,7 @@ public class DroidPlannerApp extends MultiDexApplication implements DroneListene
     public String getMixpanelToken() {
         String token = "";
         try {
-            token = Utils.getProperty("mixpanelToken", getApplicationContext());
+             token = Utils.getProperty("mixpanelToken", getApplicationContext());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -461,12 +465,37 @@ public class DroidPlannerApp extends MultiDexApplication implements DroneListene
             Log.e("TAG", error.toString());
         }
         //Listens to the connected product changing, including two parts, component changing or product connection changing.
+//        @Override
+//        public void onProductChange(BaseProduct oldProduct, BaseProduct newProduct) {
+//            mProduct = newProduct;
+//            if(mProduct != null) {
+//                mixpanelInstance.track("FPA: ConnectedToDrone");
+//                mProduct.setBaseProductListener(mDJIBaseProductListener);
+//                getFirmwareVersion();
+//            }
+//            notifyStatusChange();
+//        }
+
         @Override
-        public void onProductChange(BaseProduct oldProduct, BaseProduct newProduct) {
-            mProduct = newProduct;
-            if(mProduct != null) {
+        public void onProductDisconnect() {
+
+        }
+
+        @Override
+        public void onProductConnect(BaseProduct baseProduct) {
+            mProduct = baseProduct;
+            if(mProduct!=null){
                 mixpanelInstance.track("FPA: ConnectedToDrone");
-                mProduct.setBaseProductListener(mDJIBaseProductListener);
+                //add listener to the next product?
+                getFirmwareVersion();
+            }
+            notifyStatusChange();
+        }
+
+        @Override
+        public void onComponentChange(BaseProduct.ComponentKey componentKey, BaseComponent baseComponent, BaseComponent baseComponent1) {
+            if(baseComponent1 != null) {
+                baseComponent1.setComponentListener(mDJIComponentListener);
                 getFirmwareVersion();
             }
             notifyStatusChange();
