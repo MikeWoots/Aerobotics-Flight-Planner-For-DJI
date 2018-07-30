@@ -108,6 +108,7 @@ dependencies {
     }
     compile 'com.getkeepsafe.taptargetview:taptargetview:1.10.0'
     compile 'com.squareup.okhttp3:okhttp:3.10.0'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 configurations {
@@ -120,7 +121,7 @@ configurations.all {
         def requested = details.requested
         if (requested.group == 'com.android.support') {
             if (!requested.name.startsWith("multidex")) {
-                details.useVersion '25.3.0' //25.3.1
+                details.useVersion '25.3.1' //25.3.0
             }
         }
     }
