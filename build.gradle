@@ -35,7 +35,6 @@ buildscript {
 }
 
 
-
 def getMavenUsername(){
     return hasProperty('COM_O3DR_MAVEN_USERNAME') ? COM_O3DR_MAVEN_USERNAME : ''
 }
