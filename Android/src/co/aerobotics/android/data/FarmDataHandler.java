@@ -30,6 +30,8 @@ public class FarmDataHandler {
     private List<BoundaryDetail> serviceProviderBoundaries = new ArrayList<>();
     private SharedPreferences sharedPref;
     private Context context;
+    List<Integer> childClientIds = new ArrayList<>();
+
 
     public FarmDataHandler(Context context, JSONObject user) {
         this.context = context;
@@ -64,13 +66,14 @@ public class FarmDataHandler {
                 }
             }
         }
-
+        getChildClientIds(user.getJSONArray("client_hierarchy"));
         List<Integer> sharedFarmIds = getSharedFarmIds(user);
         List<JSONObject> invalidFarms = new ArrayList<>();
         for (JSONObject farm: farms) {
-            if (farm.getInt("client_id") != activeClientId) {
+            int clientId = farm.getInt("client_id");
+            if (clientId != activeClientId) {
                 Integer farmId = farm.getInt("id");
-                if (!sharedFarmIds.contains(farmId)) {
+                if (!sharedFarmIds.contains(farmId) && !childClientIds.contains(clientId)) {
                     invalidFarms.add(farm);
                 }
             }
@@ -233,5 +236,23 @@ public class FarmDataHandler {
         }
     }
 
-
+    private void getChildClientIds(JSONArray clientHierarchy) {
+        try {
+            for(int j = 0; j < clientHierarchy.length(); j++) {
+                JSONObject client = clientHierarchy.getJSONObject(j);
+                childClientIds.add(client.getInt("client_id"));
+                JSONArray clientChildren = client.getJSONArray("children");
+                for(int i = 0; i < clientChildren.length(); i++) {
+                    JSONObject child = clientChildren.getJSONObject(i);
+                    this.childClientIds.add(child.getInt("client_id"));
+                    JSONArray childClientHierarchy = child.getJSONArray("children");
+                    if (childClientHierarchy.length() > 0) {
+                        this.getChildClientIds(childClientHierarchy);
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
