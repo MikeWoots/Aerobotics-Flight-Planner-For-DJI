@@ -285,7 +285,7 @@ public class MissionProxy implements DPMap.PathSource {
             surveyDetail.setSpeed(boundaryDetail.getSpeed());
             surveyDetail.setCameraDetail(boundaryDetail.getCameraDetailFromString());
             surveyDetail.setSaveable(false);
-            surveyDetail.setSunny(true);
+            surveyDetail.setSunny(false);
         }
 
         survey.setSurveyDetail(surveyDetail);

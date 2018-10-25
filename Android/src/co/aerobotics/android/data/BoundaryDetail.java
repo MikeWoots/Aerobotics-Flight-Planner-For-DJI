@@ -9,11 +9,11 @@ import com.o3dr.services.android.lib.drone.mission.item.complex.CameraDetail;
 public class BoundaryDetail {
 
     private String boundary_id;
-    private double altitude = 60;
+    private double altitude = 100;
     private double angle = 180;
     private double overlap = 70;
-    private double sidelap = 70;
-    private double speed = 10;
+    private double sidelap = 75;
+    private double speed = 12;
     private String name;
     private String points = "";
     private int clientId;
