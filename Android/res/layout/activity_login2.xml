@@ -17,6 +17,20 @@
 
     <!-- Login progress -->
 
+    <TextView
+        android:id="@+id/login_wait_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/login_progress"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Logging you in! Please wait while we fetch your data."
+        android:textAlignment="center"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
     <ImageView
         android:id="@+id/aeroview"
         android:layout_width="wrap_content"
@@ -24,7 +38,8 @@
         android:layout_above="@+id/login_form"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="30dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="56dp"
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
         app:srcCompat="@drawable/aeroview" />
@@ -43,10 +58,12 @@
         android:id="@+id/login_form"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/login_progress"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="45dp"
-        android:layout_marginRight="45dp"
+        android:layout_centerVertical="false"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="-36dp"
+        android:layout_marginRight="30dp"
         android:background="@color/light">
 
         <LinearLayout

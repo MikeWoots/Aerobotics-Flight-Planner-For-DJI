@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,6 +41,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.answers.Answers;
@@ -679,7 +681,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                     if (DroneListener.debuggingWithoutDrone) {
                         missionControl.initializeMission(missionProxy, getApplicationContext(), false);
                     } else {
-                        if (DroidPlannerApp.isProductConnected()) {
+                        if (true){//DroidPlannerApp.isProductConnected()) {
                             confirmMissionStart(EditorActivity.this);
                         } else {
                             setResultToToast("Drone disconnected");
@@ -957,6 +959,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         final SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         boolean previousMissionAborted = sharedPreferences.getBoolean(context.getString(R.string.mission_aborted), false);
         builder.setTitle("Start Mission");
+        boolean noTerrainData = false;
 
         if (previousMissionAborted) {
 
@@ -974,9 +977,29 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
 
         } else {
 
-            View dialogView = inflater.inflate(R.layout.dialog_start_mission, null);
+            final View dialogView = inflater.inflate(R.layout.dialog_start_mission, null);
+            final Switch useTerrainFollowSwitch = (Switch) dialogView.findViewById(R.id.useTerrainFollowSwitch);
+            final TextView tvNoTerrainData = (TextView) dialogView.findViewById(R.id.tvNoTerrainData);
 
-            Switch useTerrainFollowSwitch = (Switch) dialogView.findViewById(R.id.useTerrainFollowSwitch);
+            useTerrainFollowSwitch.setVisibility(View.VISIBLE);
+            tvNoTerrainData.setVisibility(View.GONE);
+
+            for (MissionItemProxy itemProxy : missionProxy.getItems()) {
+                MissionItem item = itemProxy.getMissionItem();
+
+                if (item instanceof Survey) {
+                    List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
+                    // check altitudes list is not blank
+                    if (polygonPointAltitudes != null && polygonPointAltitudes.size() > 0  && polygonPointAltitudes.get(0) != 0) { // we can safely assume a zero altitude is just filler
+                        noTerrainData = false;
+                    } else {
+                        useTerrainFollowSwitch.setVisibility(View.GONE);
+                        tvNoTerrainData.setVisibility(View.VISIBLE);
+                        noTerrainData = true;
+                    }
+                }
+            }
+
             DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
             useTerrainFollowSwitch.setChecked(DJIMissionImpl.useTerrainFollowing);
 
@@ -985,12 +1008,24 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                     DJIMissionImpl.useTerrainFollowing = b;
                     sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
+
+                    if (b) {
+                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now on.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now off.", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
 
             builder.setView(dialogView);
 
             sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
+
+            //Override existing settings if no terrain data present. Note the user isn't able to see the switch for terrain following in this scenario
+            if (noTerrainData) {
+                DJIMissionImpl.useTerrainFollowing = false;
+            }
+
         }
 
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

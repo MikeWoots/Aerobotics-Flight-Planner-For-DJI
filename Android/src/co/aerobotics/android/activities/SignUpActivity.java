@@ -55,6 +55,7 @@ public class SignUpActivity extends AppCompatActivity {
     private Button mSignUpButton;
     private View mSignUpForm;
     private View mProgressView;
+    private TextView mProgressText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +63,7 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
         mSignUpForm = findViewById(R.id.signup_form);
         mProgressView = findViewById(R.id.signup_progress_bar);
+        mProgressText = (TextView) findViewById(R.id.signup_wait_text);
 
         mEmailView = (EditText) findViewById(R.id.signup_email);
         mPasswordView = (EditText) findViewById(R.id.signup_password);
@@ -246,17 +248,20 @@ public class SignUpActivity extends AppCompatActivity {
             });
 
             mProgressView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            mProgressText.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
             mProgressView.animate().setDuration(shortAnimTime).alpha(
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mProgressView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+                    mProgressText.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
                 }
             });
         } else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            mProgressText.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
             mSignUpForm.setVisibility(show ? View.INVISIBLE : View.VISIBLE);
         }
     }

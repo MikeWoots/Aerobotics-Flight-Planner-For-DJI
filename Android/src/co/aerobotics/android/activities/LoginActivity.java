@@ -83,6 +83,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private Button mSignUpButton;
     private TextView mSignUpLink;
     private TextView mForgotPasswordText;
+    private TextView mProgressText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +156,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+        mProgressText = (TextView) findViewById(R.id.login_wait_text);
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -320,11 +322,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             });
 
             mProgressView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            mProgressText.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
             mProgressView.animate().setDuration(shortAnimTime).alpha(
                     show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     mProgressView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+                    mProgressText.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
                 }
             });
 
@@ -340,6 +344,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+            mProgressText.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
             mLoginFormView.setVisibility(show ? View.INVISIBLE : View.VISIBLE);
         }
     }
