@@ -43,11 +43,11 @@
         android:id="@+id/login_form"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
         android:layout_marginLeft="45dp"
         android:layout_marginRight="45dp"
-        android:background="@color/light"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true">
+        android:background="@color/light">
 
         <LinearLayout
             android:id="@+id/email_login_form"
@@ -134,9 +134,9 @@
                 android:id="@+id/create_account"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_below="@+id/email_login_form"
                 android:layout_alignEnd="@+id/login_form"
                 android:layout_alignParentEnd="true"
-                android:layout_below="@+id/email_login_form"
                 android:layout_weight="1"
                 android:gravity="center|end"
                 android:text="@string/create_account"

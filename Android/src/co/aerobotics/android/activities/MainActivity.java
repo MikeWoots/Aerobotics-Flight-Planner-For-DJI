@@ -15,6 +15,8 @@ import co.aerobotics.android.R;
 import co.aerobotics.android.activities.interfaces.APIContract;
 import co.aerobotics.android.data.PostRequest;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.VolleyError;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import java.util.Objects;
 
@@ -91,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         return DroidPlannerApp.getInstance().isNetworkAvailable();
     }
 
-    public boolean checkTokenExistsOnServer(String token) {
+    public VolleyError checkTokenExistsOnServer(String token) {
         PostRequest postRequest = new PostRequest();
         postRequest.get(APIContract.GATEWAY_CONFIRM_TOKEN, token);
         do {
@@ -101,11 +103,10 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         } while (!postRequest.isServerResponseReceived());
-
-        return !postRequest.isServerError();
+        return postRequest.getServerError();
     }
 
-    public class CheckTokenTask extends AsyncTask<Void, Void, Boolean> implements APIContract {
+    public class CheckTokenTask extends AsyncTask<Void, Void, VolleyError> implements APIContract {
 
         private final String token;
 
@@ -114,14 +115,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... voids) {
+        protected VolleyError doInBackground(Void... voids) {
             return checkTokenExistsOnServer(token);
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final VolleyError error) {
 
-            if (success) {
+            boolean authFailure = error instanceof AuthFailureError;
+
+            if (!authFailure) {
                 Integer userId = getUserId();
                 setMixpanelUser(userId);
                 navigateToActivity(EditorActivity.class);

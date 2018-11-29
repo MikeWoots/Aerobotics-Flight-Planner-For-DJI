@@ -1,6 +1,5 @@
 package co.aerobotics.android.data;
 
-import android.util.Base64;
 import android.util.Log;
 
 import com.android.volley.AuthFailureError;
@@ -17,7 +16,6 @@ import com.android.volley.toolbox.StringRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,11 +27,11 @@ import java.util.Map;
 public class PostRequest {
     private boolean responseReceived = false;
     private JSONObject responseData = null;
-    private boolean serverError = false;
+    private boolean isServerError = false;
     private String getRequestResponseData = "";
     private String errorMessage = null;
     private OnPostReturnedListener onPostReturnedListener;
-
+    private VolleyError serverError = null;
 
     public PostRequest() {
     }
@@ -63,7 +61,8 @@ public class PostRequest {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     responseReceived = true;
-                    serverError = true;
+                    isServerError = true;
+                    serverError = error;
                     Log.d("Response", error.toString());
                 }
             });
@@ -79,7 +78,8 @@ public class PostRequest {
 
     private void resetFlags() {
         responseReceived = false;
-        serverError = false;
+        isServerError = false;
+        serverError = null;
     }
 
 
@@ -100,8 +100,9 @@ public class PostRequest {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     responseReceived = true;
-                    serverError = true;
+                    isServerError = true;
                     errorMessage = error.toString();
+                    serverError = error;
                     Log.i("Response", error.toString());
                 }
             }) {
@@ -147,7 +148,8 @@ public class PostRequest {
 
     public void get(String url, final String token) {
         responseReceived = false;
-        serverError = false;
+        isServerError = false;
+        serverError = null;
         Log.i("Response", "GET URL: " + url);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -162,7 +164,9 @@ public class PostRequest {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                 responseReceived = true;
-                serverError = true;
+                isServerError = true;
+                serverError = error;
+
                 Log.i("Response", "GET ERROR:" + error.toString());
             }
         }) {
@@ -184,7 +188,9 @@ public class PostRequest {
 
     public void postJSONObject(JSONObject jsonBody, String url, final String token){
         responseReceived = false;
-        serverError = false;
+        isServerError = false;
+        serverError = null;
+
         final JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -199,7 +205,8 @@ public class PostRequest {
             public void onErrorResponse(VolleyError error) {
                 Log.d("Post.Response", error.toString());
                 responseReceived = true;
-                serverError = true;
+                isServerError = true;
+                serverError = error;
                 onPostReturnedListener.onErrorResponse();
             }
         }) {
@@ -239,7 +246,8 @@ public class PostRequest {
 
     public void request(int requestMethod, JSONObject jsonBody, String url, final String token) {
         responseReceived = false;
-        serverError = false;
+        isServerError = false;
+        serverError = null;
         final JsonObjectRequest postRequest = new JsonObjectRequest(requestMethod, url, jsonBody, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -253,7 +261,8 @@ public class PostRequest {
             public void onErrorResponse(VolleyError error) {
                 Log.d("Post.Response", error.toString());
                 responseReceived = true;
-                serverError = true;
+                isServerError = true;
+                serverError = error;
             }
         }) {
             @Override
@@ -272,7 +281,7 @@ public class PostRequest {
     }
 
     public boolean isServerError() {
-        return serverError;
+        return isServerError;
     }
 
     public boolean isServerResponseReceived(){
@@ -289,5 +298,6 @@ public class PostRequest {
         return errorMessage;
     }
 
+    public VolleyError getServerError() { return serverError; }
 }
 
