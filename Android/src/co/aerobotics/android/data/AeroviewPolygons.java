@@ -373,10 +373,12 @@ public class AeroviewPolygons implements APIContract{
                         String name = jsonObject.getString("name");
                         String polygon = jsonObject.getString("polygon");
                         String altitudes = "";
-                        //if (polygonPointsAltered(id, polygon) || polygonPointAltitudesEmpty(id, polygon)) {
-                        List<LatLng> pointList = convertStringToLatLngList(polygon);
-                        altitudes = fetchPointAltitudes(pointList);
-                        //}
+                        if (polygonPointsAltered(id, polygon) || polygonPointAltitudesEmpty(id)) {
+                            List<LatLng> pointList = convertStringToLatLngList(polygon);
+                            altitudes = fetchPointAltitudes(pointList);
+                        } else {
+                            altitudes = getLocallySavedAltitudes(id);
+                        }
                         int farmId = jsonObject.getInt("farm_id");
                         int clientId = jsonObject.getInt("client_id");
                         int cropTypeId = jsonObject.getInt("crop_type_id");
@@ -401,6 +403,21 @@ public class AeroviewPolygons implements APIContract{
         private void displayErrorMessage() {
             Intent intent = new Intent(ACTION_ERROR_MSG);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
+    }
+
+    public String getLocallySavedAltitudes(String id) {
+        return sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes();
+    }
+
+    /*
+     * Checks if polygon altitudes are saved locally to prevent unnecessary API calls
+     */
+    public boolean polygonPointAltitudesEmpty(String id) {
+        if (sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes().equals("") || sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes() == null) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -439,7 +456,7 @@ public class AeroviewPolygons implements APIContract{
         String outputString = "";
 
         try  {
-            String returnData = getJSONFromUrl(requestString, 5000);
+            String returnData = getJSONFromUrl(requestString, 30000);
             JSONObject obj = new JSONObject(returnData);
 
             JSONArray arr = obj.getJSONArray("results");
@@ -488,6 +505,8 @@ public class AeroviewPolygons implements APIContract{
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (c != null) {
@@ -675,6 +694,15 @@ public class AeroviewPolygons implements APIContract{
         protected Boolean doInBackground(Void... voids) {
             makeGetRequestForFarms();
             waitForRequestToReturnData();
+            getReturnData();
+            try {
+                JSONObject user = new JSONObject(this.user);
+                FarmDataHandler farmDataHandler = new FarmDataHandler(context, user);
+                farmDataHandler.parseUsersFarms();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            // wait until above finished
             return !isServerError();
         }
 
@@ -703,7 +731,7 @@ public class AeroviewPolygons implements APIContract{
         @Override
         protected void onPostExecute(final Boolean requestReturnedSuccessfully) {
             if(requestReturnedSuccessfully){
-                handleReturnData();
+                // handleReturnData();
                 setTaskCompleteFlag();
                 handleAsyncRequestReturns();
             } else{

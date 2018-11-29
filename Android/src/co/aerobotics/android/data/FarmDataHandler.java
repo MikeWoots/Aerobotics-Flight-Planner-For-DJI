@@ -110,15 +110,20 @@ public class FarmDataHandler {
                         String id = orchard.getString("id");
                         String name = orchard.getString("name");
                         String polygon = orchard.getString("polygon");
-                        String altitudes = orchard.getString("polygon_altitudes");
-                        if (aeroviewPolygons.polygonPointsAltered(id, polygon) || altitudes.equals("")) {
+                        String altitudes = "";
+                        if (aeroviewPolygons.polygonPointsAltered(id, polygon) || aeroviewPolygons.polygonPointAltitudesEmpty(id)) {
                             List<LatLng> pointList = aeroviewPolygons.convertStringToLatLngList(polygon);
                             try {
                                 altitudes = aeroviewPolygons.fetchPointAltitudes(pointList);
                             } catch (IOException e) {
                                 e.printStackTrace();
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
+                        } else {
+                            altitudes = aeroviewPolygons.getLocallySavedAltitudes(id);
                         }
+
                         int cropTypeId = orchard.getInt("crop_type_id");
                         serviceProviderBoundaries.add(new BoundaryDetail(name, id, polygon, altitudes, clientId, cropTypeId, farmId));
                     }
