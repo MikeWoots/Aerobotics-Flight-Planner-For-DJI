@@ -1,7 +1,9 @@
 package co.aerobotics.android.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -132,6 +134,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     private static final IntentFilter eventFilter = new IntentFilter();
     private static final String MISSION_FILENAME_DIALOG_TAG = "Mission filename";
     private Snackbar bar;
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
 
     static {
@@ -156,7 +159,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             final String action = intent.getAction();
             Bundle extras = intent.getExtras();
 
-            switch (action) {
+             switch (action) {
                 case AeroviewPolygons.ACTION_POLYGON_UPDATE:
                     if(extras!=null)
                         OnGoToFarmSelected(convertStringPointsToLatLongs(extras.getStringArrayList("farm_points")));
@@ -435,6 +438,11 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             ActivityCompat.requestPermissions(this,
                     missingPermission.toArray(new String[missingPermission.size()]),
                     REQUEST_PERMISSION_CODE);
+        }
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+            return;
         }
     }
     /**
