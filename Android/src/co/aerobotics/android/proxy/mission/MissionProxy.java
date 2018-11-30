@@ -245,7 +245,7 @@ public class MissionProxy implements DPMap.PathSource {
      *
      * @param points 2D points making up the survey
      */
-    public void addSurveyPolygon(List<LatLong> points, boolean spline) {
+    public void addSurveyPolygon(List<LatLong> points, boolean spline, boolean isMergedConvexSurvey) {
         Survey survey;
         if(spline){
             survey = new SplineSurvey();
@@ -253,6 +253,7 @@ public class MissionProxy implements DPMap.PathSource {
             survey = new Survey();
         }
         survey.setPolygonPoints(points);
+        survey.setIsMergedConvexSurvey(isMergedConvexSurvey);
 
         // Load the last survey preferences.
         dpPrefs.loadSurveyPreferences(drone, survey);
@@ -271,6 +272,7 @@ public class MissionProxy implements DPMap.PathSource {
         Survey survey = new Survey();
         survey.setPolygonPoints(points);
         survey.setID(id);
+        survey.setIsMergedConvexSurvey(false);
         //TODO: get survey detail from database
 
         SQLiteDatabaseHandler dbHandler = new SQLiteDatabaseHandler(context);
@@ -1015,10 +1017,9 @@ public class MissionProxy implements DPMap.PathSource {
             for (LatLng point : mergedPoints) {
                 dronekitPoly.add(new LatLong(point.latitude, point.longitude));
             }
-            this.addSurveyPolygon(dronekitPoly, false);
+            this.addSurveyPolygon(dronekitPoly, false, true);
             DroidPlannerApp.getInstance().getSelectedPolygons().clear();
             LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(AeroviewPolygons.ACTION_POLYGON_UPDATE));
-
         }
     }
 

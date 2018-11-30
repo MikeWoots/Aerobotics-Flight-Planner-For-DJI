@@ -136,7 +136,6 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     private Snackbar bar;
     final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
-
     static {
         eventFilter.addAction(MissionProxy.ACTION_MISSION_PROXY_UPDATE);
         eventFilter.addAction(DroidPlannerPrefs.PREF_VEHICLE_DEFAULT_SPEED);
@@ -967,7 +966,9 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         final SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         boolean previousMissionAborted = sharedPreferences.getBoolean(context.getString(R.string.mission_aborted), false);
         builder.setTitle("Start Mission");
+
         boolean noTerrainData = false;
+        boolean cantUseTerrainFollow = false;
 
         if (previousMissionAborted) {
 
@@ -988,24 +989,34 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             final View dialogView = inflater.inflate(R.layout.dialog_start_mission, null);
             final Switch useTerrainFollowSwitch = (Switch) dialogView.findViewById(R.id.useTerrainFollowSwitch);
             final TextView tvNoTerrainData = (TextView) dialogView.findViewById(R.id.tvNoTerrainData);
+            final TextView tvCantUseTerrainFollow = (TextView) dialogView.findViewById(R.id.tvCantUseTerrainFollow);
 
             useTerrainFollowSwitch.setVisibility(View.VISIBLE);
             tvNoTerrainData.setVisibility(View.GONE);
+            tvCantUseTerrainFollow.setVisibility(View.GONE);
 
             for (MissionItemProxy itemProxy : missionProxy.getItems()) {
                 MissionItem item = itemProxy.getMissionItem();
 
                 if (item instanceof Survey) {
-                    List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
-                    // check altitudes list is not blank
-                    if (polygonPointAltitudes != null && polygonPointAltitudes.size() > 0  && polygonPointAltitudes.get(0) != 0) { // we can safely assume a zero altitude is just filler
-                        noTerrainData = false;
-                    } else {
+                    if (((Survey) item).getIsMergedConvexSurvey()) {
+                        cantUseTerrainFollow = true;
                         useTerrainFollowSwitch.setVisibility(View.GONE);
-                        tvNoTerrainData.setVisibility(View.VISIBLE);
-                        noTerrainData = true;
+                    } else {
+                        List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
+                        // check altitudes list is not blank
+                        if (polygonPointAltitudes == null || polygonPointAltitudes.size() == 0 || polygonPointAltitudes.get(0) == 0) { // we can safely assume a zero altitude is just filler
+                            useTerrainFollowSwitch.setVisibility(View.GONE);
+                            noTerrainData = true;
+                        }
                     }
                 }
+            }
+
+            if (cantUseTerrainFollow) { // Polygons for flying were selected badly. Need to pick one at a time for terrain following to work
+                tvCantUseTerrainFollow.setVisibility(View.VISIBLE);
+            } else if (noTerrainData) { // There's no elevation data available for the polygons selected. Likely an issue getting data from Google Elevation API
+                tvNoTerrainData.setVisibility(View.VISIBLE);
             }
 
             DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
@@ -1030,7 +1041,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
 
             //Override existing settings if no terrain data present. Note the user isn't able to see the switch for terrain following in this scenario
-            if (noTerrainData) {
+            if (noTerrainData || cantUseTerrainFollow) {
                 DJIMissionImpl.useTerrainFollowing = false;
             }
 
@@ -1276,7 +1287,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         drawCustomMissionButton.setSelected(false);
 
         if (points.size() > 2) {
-            missionProxy.addSurveyPolygon(points, false);
+            missionProxy.addSurveyPolygon(points, false, false);
 
             if (isOnTour) {
                 handler.postDelayed(new Runnable() {

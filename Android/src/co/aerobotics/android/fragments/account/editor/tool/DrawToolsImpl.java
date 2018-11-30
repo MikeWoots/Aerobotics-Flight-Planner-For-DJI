@@ -88,7 +88,7 @@ class DrawToolsImpl extends EditorToolsImpl implements AdapterView.OnItemSelecte
                 case SURVEY:
                 default:
                     if (points.size() > 2) {
-                        missionProxy.addSurveyPolygon(points, false);
+                        missionProxy.addSurveyPolygon(points, false, false);
                         mMixpanel.track("FPA: CustomSurveyDrawn");
 
                     } else {
@@ -99,7 +99,7 @@ class DrawToolsImpl extends EditorToolsImpl implements AdapterView.OnItemSelecte
 
                 case SPLINE_SURVEY:
                     if (points.size() > 2) {
-                        missionProxy.addSurveyPolygon(points, true);
+                        missionProxy.addSurveyPolygon(points, true, false);
 
                     } else {
                         editorToolsFragment.setTool(EditorToolsFragment.EditorTools.DRAW);
