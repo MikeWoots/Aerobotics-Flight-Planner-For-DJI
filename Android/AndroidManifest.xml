@@ -93,6 +93,10 @@
 
         <!-- <service android:name="dji.sdk.sdkmanager.DJIGlobalService" /> -->
 
+        <!-- Google Elevation API key -->
+        <meta-data
+            android:name="com.google.maps.elevation.API_KEY"
+            android:value="${googleElevationKey}" />
 
         <!-- You must insert your own Google Maps for Android API v2 key in here. -->
         <meta-data

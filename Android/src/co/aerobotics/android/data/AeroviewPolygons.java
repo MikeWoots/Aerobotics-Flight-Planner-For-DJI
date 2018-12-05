@@ -3,7 +3,10 @@ package co.aerobotics.android.data;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -60,6 +63,7 @@ public class AeroviewPolygons implements APIContract{
     private boolean isGetFarmsTaskExecuted = false;
     private SharedPreferences sharedPref;
     private ArrayList<String> farmPointStrings;
+    private String googleElevationApiKey;
 
     private static PointExtractor<LatLng> latLngPointExtractor = new PointExtractor<LatLng>() {
         @Override
@@ -78,6 +82,15 @@ public class AeroviewPolygons implements APIContract{
         sqLiteDatabaseHandler = new SQLiteDatabaseHandler(context);
         sharedPref = context.getSharedPreferences(context.getResources().getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
 
+        ApplicationInfo ai = null;
+        try {
+            ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            Bundle bundle = ai.metaData;
+            googleElevationApiKey = bundle.getString("com.google.maps.elevation.API_KEY");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            googleElevationApiKey = "";
+        }
     }
 
     private void addNewCropTypesToDB(String jsonString) {
@@ -434,7 +447,8 @@ public class AeroviewPolygons implements APIContract{
      */
     public String fetchPointAltitudes(List<LatLng> polygon) throws IOException {
         String requestStringStart = "https://maps.googleapis.com/maps/api/elevation/json?locations=";
-        String requestStringEnd = "&key=AIzaSyAilGCqDRAqrYxjWF3saUBkadntr-i8hKw";
+        String requestStringEnd = "&key=";
+
         String pointString = "";
         int counter = 0;
         int step = 1; // every how many points should elevation data be fetched?
@@ -452,7 +466,7 @@ public class AeroviewPolygons implements APIContract{
             counter++;
         }
 
-        String requestString = requestStringStart + pointString + requestStringEnd;
+        String requestString = requestStringStart + pointString + requestStringEnd + googleElevationApiKey;
         String outputString = "";
 
         try  {
