@@ -144,7 +144,11 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
         initializeListViewOnItemClickListener();
         setCurrentlySelectedFarmsAsChecked();
 
-        navigateToButton.setEnabled(selectedFarmIds.size() > 0); //if a farm is selected, enable navigation
+        if (selectedFarmIds.size() > 0) {
+            navigateToButton.setVisibility(View.VISIBLE); // if a farm is selected, enable navigation
+        } else {
+            navigateToButton.setVisibility(View.GONE);
+        }
     }
 
     private void initializeListView() {
@@ -183,7 +187,11 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
                     }
                 }
 
-                navigateToButton.setEnabled(selectedFarmIds.size() > 0); // if a farm is selected, enable navigation
+                if (selectedFarmIds.size() > 0) {
+                    navigateToButton.setVisibility(View.VISIBLE); // if a farm is selected, enable navigation
+                } else {
+                    navigateToButton.setVisibility(View.GONE);
+                }
             }
         });
     }
@@ -231,7 +239,6 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
             }
         });
 
-        //Button navigateToButton = (Button) findViewById(R.id.navigateToButton);
         navigateToButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
