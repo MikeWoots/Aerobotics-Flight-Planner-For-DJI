@@ -55,12 +55,15 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
     List<Farm> farms = new ArrayList<>();
     private SharedPreferences sharedPref;
     private ListView itemList;
+    private Button navigateToButton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeFragmentManager();
         setContentView(R.layout.activity_farm_manager);
         initializeSharedPrefs();
+        navigateToButton = (Button) findViewById(R.id.navigateToButton);
         getCurrentlySelectedFarmIds();
         getAllFarmsAccessibleToActiveClient();
         setupListView();
@@ -140,6 +143,8 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
         populateListView();
         initializeListViewOnItemClickListener();
         setCurrentlySelectedFarmsAsChecked();
+
+        navigateToButton.setEnabled(selectedFarmIds.size() > 0); //if a farm is selected, enable navigation
     }
 
     private void initializeListView() {
@@ -177,6 +182,8 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
                         selectedFarmIds.add(farm.getId());
                     }
                 }
+
+                navigateToButton.setEnabled(selectedFarmIds.size() > 0); // if a farm is selected, enable navigation
             }
         });
     }
@@ -224,11 +231,11 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
             }
         });
 
-        Button navigateToButton = (Button) findViewById(R.id.navigateToButton);
+        //Button navigateToButton = (Button) findViewById(R.id.navigateToButton);
         navigateToButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (selectedFarmIds != null) {
+                if (selectedFarmIds != null && selectedFarmIds.size() > 0) {
                     if (selectedFarmIds.size()> 1) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                         builder.setMessage(R.string.nav_to_one_farm)
@@ -262,7 +269,19 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
                                 });
                         AlertDialog alert = builder.create();
                         alert.show();
-
+                    }
+                } else {
+                    if (selectedFarmIds.size()> 1) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                        builder.setMessage(R.string.no_farms_selected)
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //do nothing
+                                    }
+                                });
+                        AlertDialog alert = builder.create();
+                        alert.show();
                     }
                 }
             }
