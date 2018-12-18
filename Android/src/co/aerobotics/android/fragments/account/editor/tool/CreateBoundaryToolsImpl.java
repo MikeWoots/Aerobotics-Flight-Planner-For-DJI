@@ -41,7 +41,7 @@ public class CreateBoundaryToolsImpl extends EditorToolsImpl {
 
     public void createSurvey(){
         List<LatLong> poly = nameToPolygon.get(selectedItems.get(0));
-        missionProxy.addSurveyPolygon(poly, false);
+        missionProxy.addSurveyPolygon(poly, false, false);
     }
 
     private JSONObject readJsonFile(String fileName){

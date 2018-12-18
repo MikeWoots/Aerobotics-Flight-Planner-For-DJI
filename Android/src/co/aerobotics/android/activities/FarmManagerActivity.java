@@ -1,7 +1,9 @@
 package co.aerobotics.android.activities;
 
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
@@ -17,16 +19,20 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.getkeepsafe.taptargetview.TapTarget;
 import com.getkeepsafe.taptargetview.TapTargetSequence;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.o3dr.services.android.lib.coordinate.LatLong;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,12 +55,15 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
     List<Farm> farms = new ArrayList<>();
     private SharedPreferences sharedPref;
     private ListView itemList;
+    private Button navigateToButton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initializeFragmentManager();
         setContentView(R.layout.activity_farm_manager);
         initializeSharedPrefs();
+        navigateToButton = (Button) findViewById(R.id.navigateToButton);
         getCurrentlySelectedFarmIds();
         getAllFarmsAccessibleToActiveClient();
         setupListView();
@@ -134,6 +143,12 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
         populateListView();
         initializeListViewOnItemClickListener();
         setCurrentlySelectedFarmsAsChecked();
+
+        if (selectedFarmIds.size() > 0) {
+            navigateToButton.setVisibility(View.VISIBLE); // if a farm is selected, enable navigation
+        } else {
+            navigateToButton.setVisibility(View.GONE);
+        }
     }
 
     private void initializeListView() {
@@ -170,6 +185,12 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
                     } else {
                         selectedFarmIds.add(farm.getId());
                     }
+                }
+
+                if (selectedFarmIds.size() > 0) {
+                    navigateToButton.setVisibility(View.VISIBLE); // if a farm is selected, enable navigation
+                } else {
+                    navigateToButton.setVisibility(View.GONE);
                 }
             }
         });
@@ -217,6 +238,79 @@ public class FarmManagerActivity extends DrawerNavigationUI implements APIContra
                 openEditorActivity();
             }
         });
+
+        navigateToButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (selectedFarmIds != null && selectedFarmIds.size() > 0) {
+                    if (selectedFarmIds.size()> 1) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                        builder.setMessage(R.string.nav_to_one_farm)
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //do nothing
+                                    }
+                                });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    } else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                        builder.setMessage(R.string.confirm_nav_to_farm)
+                                .setCancelable(true)
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        Uri farmURI = buildFarmLocationUri(selectedFarmIds.get(0).toString());
+                                        Intent navIntent = new Intent(Intent.ACTION_VIEW);
+                                        navIntent.setData(farmURI);
+                                        if (navIntent.resolveActivity(getPackageManager()) != null) {
+                                            startActivity(navIntent);
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        // Do nothing
+                                    }
+                                });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                } else {
+                    if (selectedFarmIds.size()> 1) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                        builder.setMessage(R.string.no_farms_selected)
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //do nothing
+                                    }
+                                });
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                }
+            }
+        });
+    }
+
+    // Builds a URI for opening the location of the first polygon vertex from the farmId passed in
+    private Uri buildFarmLocationUri(String farmId) {
+        AeroviewPolygons aeroviewPolygons = new AeroviewPolygons(FarmManagerActivity.this.getApplicationContext());
+        LatLng location = aeroviewPolygons.getFarmLocation(farmId);
+
+        String uriString = "geo:";
+        uriString += Double.toString(location.latitude);
+        uriString += ",";
+        uriString += (Double.toString(location.longitude));
+        uriString += "?q=";
+        uriString += Double.toString(location.latitude);
+        uriString += ",";
+        uriString += (Double.toString(location.longitude));
+
+        Uri uri = Uri.parse(uriString);
+        return uri;
     }
 
     private void writeSelectedFarmsToSharedPrefs() {

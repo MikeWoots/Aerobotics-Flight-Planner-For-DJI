@@ -1,7 +1,9 @@
 package co.aerobotics.android.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,10 +14,12 @@ import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -38,6 +42,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.answers.Answers;
@@ -47,6 +53,7 @@ import com.getkeepsafe.taptargetview.TapTargetSequence;
 import com.github.jorgecastilloprz.FABProgressCircle;
 import com.github.jorgecastilloprz.listeners.FABProgressListener;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.utils.FileUtils;
 import com.o3dr.services.android.lib.coordinate.LatLong;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -127,7 +134,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
     private static final IntentFilter eventFilter = new IntentFilter();
     private static final String MISSION_FILENAME_DIALOG_TAG = "Mission filename";
     private Snackbar bar;
-
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
     static {
         eventFilter.addAction(MissionProxy.ACTION_MISSION_PROXY_UPDATE);
@@ -151,7 +158,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             final String action = intent.getAction();
             Bundle extras = intent.getExtras();
 
-            switch (action) {
+             switch (action) {
                 case AeroviewPolygons.ACTION_POLYGON_UPDATE:
                     if(extras!=null)
                         OnGoToFarmSelected(convertStringPointsToLatLongs(extras.getStringArrayList("farm_points")));
@@ -431,6 +438,11 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                     missingPermission.toArray(new String[missingPermission.size()]),
                     REQUEST_PERMISSION_CODE);
         }
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+            return;
+        }
     }
     /**
      * Result of runtime permission request
@@ -672,11 +684,17 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                     //missionControl.run(missionProxy, getApplicationContext(), false);
                     //new DJIMissionImpl().initializeMission(missionProxy, getApplicationContext(), resumePreviousMission);
                     //resumePreviousMission = false;
-                    if (DroidPlannerApp.isProductConnected()) {
-                        confirmMissionStart(EditorActivity.this);
+
+                    if (DroneListener.debuggingWithoutDrone) {
+                        missionControl.initializeMission(missionProxy, getApplicationContext(), false);
                     } else {
-                        setResultToToast("Drone disconnected");
+                        if (DroidPlannerApp.isProductConnected()) {
+                            confirmMissionStart(EditorActivity.this);
+                        } else {
+                            setResultToToast("Drone disconnected");
+                        }
                     }
+
                 } else {
                     mMixpanel.track("FPA: TapStopMission");
                     confirmMissionStop(EditorActivity.this);
@@ -945,21 +963,88 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         LayoutInflater inflater = getLayoutInflater();
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(context);
-        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         boolean previousMissionAborted = sharedPreferences.getBoolean(context.getString(R.string.mission_aborted), false);
         builder.setTitle("Start Mission");
+
+        boolean noTerrainData = false;
+        boolean cantUseTerrainFollow = false;
+
         if (previousMissionAborted) {
+
             View dialogView = inflater.inflate(R.layout.dialog_resume_mission, null);
             CheckBox resumeCheck = (CheckBox) dialogView.findViewById(R.id.resumeMissionCheckBox);
+
             resumeCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                     resumePreviousMission = b;
                 }
             });
+
             builder.setView(dialogView);
+
         } else {
-            builder.setMessage("Are you sure you want to start the mission?");
+
+            final View dialogView = inflater.inflate(R.layout.dialog_start_mission, null);
+            final Switch useTerrainFollowSwitch = (Switch) dialogView.findViewById(R.id.useTerrainFollowSwitch);
+            final TextView tvNoTerrainData = (TextView) dialogView.findViewById(R.id.tvNoTerrainData);
+            final TextView tvCantUseTerrainFollow = (TextView) dialogView.findViewById(R.id.tvCantUseTerrainFollow);
+
+            useTerrainFollowSwitch.setVisibility(View.VISIBLE);
+            tvNoTerrainData.setVisibility(View.GONE);
+            tvCantUseTerrainFollow.setVisibility(View.GONE);
+
+            for (MissionItemProxy itemProxy : missionProxy.getItems()) {
+                MissionItem item = itemProxy.getMissionItem();
+
+                if (item instanceof Survey) {
+                    if (((Survey) item).getIsMergedConvexSurvey()) {
+                        cantUseTerrainFollow = true;
+                        useTerrainFollowSwitch.setVisibility(View.GONE);
+                    } else {
+                        List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
+                        // check altitudes list is not blank
+                        if (polygonPointAltitudes == null || polygonPointAltitudes.size() == 0 || polygonPointAltitudes.get(0) == 0) { // we can safely assume a zero altitude is just filler
+                            useTerrainFollowSwitch.setVisibility(View.GONE);
+                            noTerrainData = true;
+                        }
+                    }
+                }
+            }
+
+            if (cantUseTerrainFollow) { // Polygons for flying were selected badly. Need to pick one at a time for terrain following to work
+                tvCantUseTerrainFollow.setVisibility(View.VISIBLE);
+            } else if (noTerrainData) { // There's no elevation data available for the polygons selected. Likely an issue getting data from Google Elevation API
+                tvNoTerrainData.setVisibility(View.VISIBLE);
+            }
+
+            DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
+            useTerrainFollowSwitch.setChecked(DJIMissionImpl.useTerrainFollowing);
+
+            useTerrainFollowSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    DJIMissionImpl.useTerrainFollowing = b;
+                    sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
+
+                    if (b) {
+                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now on.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now off.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            builder.setView(dialogView);
+
+            sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
+
+            //Override existing settings if no terrain data present. Note the user isn't able to see the switch for terrain following in this scenario
+            if (noTerrainData || cantUseTerrainFollow) {
+                DJIMissionImpl.useTerrainFollowing = false;
+            }
+
         }
 
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -1202,7 +1287,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         drawCustomMissionButton.setSelected(false);
 
         if (points.size() > 2) {
-            missionProxy.addSurveyPolygon(points, false);
+            missionProxy.addSurveyPolygon(points, false, false);
 
             if (isOnTour) {
                 handler.postDelayed(new Runnable() {
