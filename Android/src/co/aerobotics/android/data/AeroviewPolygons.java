@@ -3,7 +3,10 @@ package co.aerobotics.android.data;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -18,17 +21,28 @@ import com.goebl.simplify.Simplify;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.o3dr.services.android.lib.coordinate.LatLong;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by michaelwootton on 8/2/17.
@@ -49,6 +63,7 @@ public class AeroviewPolygons implements APIContract{
     private boolean isGetFarmsTaskExecuted = false;
     private SharedPreferences sharedPref;
     private ArrayList<String> farmPointStrings;
+    private String googleElevationApiKey;
 
     private static PointExtractor<LatLng> latLngPointExtractor = new PointExtractor<LatLng>() {
         @Override
@@ -67,6 +82,15 @@ public class AeroviewPolygons implements APIContract{
         sqLiteDatabaseHandler = new SQLiteDatabaseHandler(context);
         sharedPref = context.getSharedPreferences(context.getResources().getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
 
+        ApplicationInfo ai = null;
+        try {
+            ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            Bundle bundle = ai.metaData;
+            googleElevationApiKey = bundle.getString("com.google.maps.elevation.API_KEY");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            googleElevationApiKey = "";
+        }
     }
 
     private void addNewCropTypesToDB(String jsonString) {
@@ -126,7 +150,7 @@ public class AeroviewPolygons implements APIContract{
         return activeFarmsIdsFormatted;
     }
 
-    private List<LatLng> convertStringToLatLngList(String polygon){
+    public List<LatLng> convertStringToLatLngList(String polygon){
         String[] latLongPairs = polygon.split(" ");
         LatLng [] points = (convertToLatLongList(latLongPairs));
         Simplify<LatLng> simplify = new Simplify<LatLng>(new LatLng[0], latLngPointExtractor);
@@ -358,15 +382,24 @@ public class AeroviewPolygons implements APIContract{
                     JSONObject jsonObject;
                     try {
                         jsonObject = boundariesArray.getJSONObject(i);
+                        String id = jsonObject.getString("id");
                         String name = jsonObject.getString("name");
                         String polygon = jsonObject.getString("polygon");
-                        String id = jsonObject.getString("id");
+                        String altitudes = "";
+                        if (polygonPointsAltered(id, polygon) || polygonPointAltitudesEmpty(id)) {
+                            List<LatLng> pointList = convertStringToLatLngList(polygon);
+                            altitudes = fetchPointAltitudes(pointList);
+                        } else {
+                            altitudes = getLocallySavedAltitudes(id);
+                        }
                         int farmId = jsonObject.getInt("farm_id");
                         int clientId = jsonObject.getInt("client_id");
                         int cropTypeId = jsonObject.getInt("crop_type_id");
                         if (!polygon.equals("") && clientId != DRONE_DEMO_ACCOUNT_ID) {
-                            boundariesList.add(new BoundaryDetail(name,id, polygon, clientId , cropTypeId, farmId));
+                            boundariesList.add(new BoundaryDetail(name, id, polygon, altitudes, clientId, cropTypeId, farmId));
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -384,6 +417,117 @@ public class AeroviewPolygons implements APIContract{
             Intent intent = new Intent(ACTION_ERROR_MSG);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
+    }
+
+    public String getLocallySavedAltitudes(String id) {
+        return sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes();
+    }
+
+    /*
+     * Checks if polygon altitudes are saved locally to prevent unnecessary API calls
+     */
+    public boolean polygonPointAltitudesEmpty(String id) {
+        if (sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes().equals("") || sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes() == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /*
+     * Checks if the points of a boundary polygon have been altered
+     */
+    public boolean polygonPointsAltered(String id, String polygon) {
+        BoundaryDetail bound = sqLiteDatabaseHandler.getBoundaryDetail(id);
+        return !bound.getPoints().equals(polygon);
+    }
+
+    /*
+     * takes in a list of LatLng coordinates and queries the Google Elevation API to return each point's altitude
+     */
+    public String fetchPointAltitudes(List<LatLng> polygon) throws IOException {
+        String requestStringStart = "https://maps.googleapis.com/maps/api/elevation/json?locations=";
+        String requestStringEnd = "&key=";
+
+        String pointString = "";
+        int counter = 0;
+        int step = 1; // every how many points should elevation data be fetched?
+        int maxpoints = 100; // prevent a massive number of API calls (and URLS longer than 8192 chars) - sample and hold altitudes at intervals
+        if (polygon.size() > maxpoints) {
+            step = (int) Math.ceil((double) polygon.size() / (double) maxpoints);
+        }
+
+        for (LatLng point : polygon) {
+            if (counter == 0) {
+                pointString += point.latitude + "," + point.longitude;
+            } else if (counter % step == 0) { // only make a call every *step* iterations
+                pointString +=  "|" + point.latitude + "," + point.longitude;
+            }
+            counter++;
+        }
+
+        String requestString = requestStringStart + pointString + requestStringEnd + googleElevationApiKey;
+        String outputString = "";
+
+        try  {
+            String returnData = getJSONFromUrl(requestString, 30000);
+            JSONObject obj = new JSONObject(returnData);
+
+            JSONArray arr = obj.getJSONArray("results");
+
+            for (int i = 0; i < polygon.size(); i++) {
+                String altitude = "";
+
+                if (i/step <= arr.length()-1) {
+                    altitude = arr.getJSONObject(i/step).getString("elevation");
+                } else {
+                    altitude = arr.getJSONObject(arr.length()-1).getString("elevation"); // If something's gone wrong, fill overflow with last value in JSON object
+                }
+
+                if (i == 0) {
+                    outputString = altitude;
+                } else {
+                    outputString += "," + altitude;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return outputString;
+    }
+
+    public String getJSONFromUrl(String url, int timeout) {
+        HttpURLConnection c = null;
+        try {
+            URL requestURL = new URL(url);
+            c = (HttpsURLConnection) requestURL.openConnection();
+
+            c.setConnectTimeout(timeout);
+            c.setReadTimeout(timeout);
+            c.connect();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+            br.close();
+            return sb.toString();
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) {
+                c.disconnect();
+            }
+        }
+        return null;
     }
 
     /**
@@ -564,6 +708,15 @@ public class AeroviewPolygons implements APIContract{
         protected Boolean doInBackground(Void... voids) {
             makeGetRequestForFarms();
             waitForRequestToReturnData();
+            getReturnData();
+            try {
+                JSONObject user = new JSONObject(this.user);
+                FarmDataHandler farmDataHandler = new FarmDataHandler(context, user);
+                farmDataHandler.parseUsersFarms();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            // wait until above finished
             return !isServerError();
         }
 
@@ -592,7 +745,7 @@ public class AeroviewPolygons implements APIContract{
         @Override
         protected void onPostExecute(final Boolean requestReturnedSuccessfully) {
             if(requestReturnedSuccessfully){
-                handleReturnData();
+                // handleReturnData();
                 setTaskCompleteFlag();
                 handleAsyncRequestReturns();
             } else{
@@ -619,6 +772,20 @@ public class AeroviewPolygons implements APIContract{
             Intent intent = new Intent(ACTION_ERROR_MSG);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
+    }
+
+    //Returns the first polygon vertex location from the first selected farm
+    public LatLng getFarmLocation(String farmId) {
+        List<BoundaryDetail> boundaryDetails = sqLiteDatabaseHandler.getBoundaryDetailsForFarmIds(farmId);
+
+        for (BoundaryDetail boundaryDetail : boundaryDetails) {
+            PolygonData polygonData = new PolygonData(boundaryDetail.getName(), convertStringToLatLngList(boundaryDetail.getPoints()), false, boundaryDetail.getBoundaryId());
+
+            for(LatLng point: polygonData.getPoints())
+                return point;
+        }
+
+        return null;
     }
 
     public void executeGetCropFamiliesTask () {

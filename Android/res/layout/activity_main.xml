@@ -9,13 +9,11 @@
 
     <ImageView
         android:id="@+id/imageView7"
-        android:layout_width="355dp"
-        android:layout_height="118dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="100dp"
-        android:scaleType="fitStart"
-        android:src="@drawable/aerobotics_logo_transparent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/aeroview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -25,11 +23,11 @@
         style="@style/AeroboticsTextAppearance.Dark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginEnd="8dp"
         android:text="Fetching data..."
-        android:textSize="20sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView7" />
