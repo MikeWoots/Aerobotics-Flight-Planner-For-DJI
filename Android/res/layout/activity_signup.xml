@@ -87,7 +87,7 @@
                         android:hint="@string/prompt_email"
                         android:imeOptions="actionNext"
                         android:inputType="textEmailAddress"
-                        android:nextFocusDown="@id/signup_phonenumber"
+                        android:nextFocusDown="@+id/signup_phonenumber"
                         android:textColor="@color/primary_dark_blue"
                         android:textSize="18sp" />
 
@@ -115,7 +115,7 @@
                         android:hint="@string/prompt_phonenumber"
                         android:imeOptions="actionNext"
                         android:inputType="phone"
-                        android:nextFocusDown="@id/first_name"
+                        android:nextFocusDown="@+id/first_name"
                         android:textColor="@color/primary_dark_blue"
                         android:textSize="18sp" />
                 </android.support.design.widget.TextInputLayout>
@@ -140,7 +140,7 @@
                         android:hint="First Name"
                         android:imeOptions="actionNext"
                         android:inputType="textPersonName"
-                        android:nextFocusDown="@id/last_name" />
+                        android:nextFocusDown="@+id/last_name" />
 
                 </android.support.design.widget.TextInputLayout>
 
@@ -157,7 +157,7 @@
                         android:ems="10"
                         android:hint="Last Name"
                         android:inputType="textPersonName"
-                        android:nextFocusDown="@id/signup_password" />
+                        android:nextFocusDown="@+id/signup_password" />
 
                 </android.support.design.widget.TextInputLayout>
 
@@ -182,7 +182,7 @@
                         android:ems="10"
                         android:hint="Password"
                         android:inputType="textPassword"
-                        android:nextFocusDown="@id/signup_password_confirm" />
+                        android:nextFocusDown="@+id/signup_password_confirm" />
                 </android.support.design.widget.TextInputLayout>
 
                 <android.support.design.widget.TextInputLayout

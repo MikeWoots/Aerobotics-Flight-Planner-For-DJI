@@ -114,7 +114,7 @@ public class FarmDataHandler {
                         String name = orchard.getString("name");
                         String polygon = orchard.getString("polygon");
                         String altitudes = "";
-                        if (aeroviewPolygons.polygonPointsAltered(id, polygon) || aeroviewPolygons.polygonPointAltitudesEmpty(id)) {
+                        if (aeroviewPolygons.polygonPointAltitudesEmpty(id) || aeroviewPolygons.polygonPointsAltered(id, polygon)) {
                             List<LatLng> pointList = aeroviewPolygons.convertStringToLatLngList(polygon);
                             try {
                                 altitudes = aeroviewPolygons.fetchPointAltitudes(pointList);

@@ -386,7 +386,7 @@ public class AeroviewPolygons implements APIContract{
                         String name = jsonObject.getString("name");
                         String polygon = jsonObject.getString("polygon");
                         String altitudes = "";
-                        if (polygonPointsAltered(id, polygon) || polygonPointAltitudesEmpty(id)) {
+                        if (polygonPointAltitudesEmpty(id) || polygonPointsAltered(id, polygon)) {
                             List<LatLng> pointList = convertStringToLatLngList(polygon);
                             altitudes = fetchPointAltitudes(pointList);
                         } else {
@@ -427,7 +427,7 @@ public class AeroviewPolygons implements APIContract{
      * Checks if polygon altitudes are saved locally to prevent unnecessary API calls
      */
     public boolean polygonPointAltitudesEmpty(String id) {
-        if (sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes().equals("") || sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes() == null) {
+        if (sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes() == null || sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes().equals("")) {
             return true;
         } else {
             return false;
