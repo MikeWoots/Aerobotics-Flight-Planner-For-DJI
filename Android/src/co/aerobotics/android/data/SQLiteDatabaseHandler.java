@@ -26,7 +26,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
     private static final String LOG = "DatabaseHelper";
     private Context context;
 
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 9;
     private static final String DATABASE_NAME = "BoundariesDB";
     private static final String TABLE_BOUNDARIES = "Boundaries";
     private static final String TABLE_REQUESTS = "Requests";
@@ -39,6 +39,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_BOUNDARY_ID = "boundary_id";
     private static final String KEY_CLIENT_ID = "client_id";
     private static final String KEY_POINTS = "polygon_points";
+    private static final String KEY_POLYGON_ALTITUDES = "polygon_altitudes"; // boundary polygon point altitudes
     private static final String KEY_ANGLE = "angle";
     private static final String KEY_OVERLAP = "overlap";
     private static final String KEY_SIDELAP = "sidelap";
@@ -51,7 +52,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
 
     private static final String[] BOUNDARY_TABLE_COLUMNS = {KEY_NAME, KEY_BOUNDARY_ID, KEY_POINTS,
             KEY_ANGLE, KEY_OVERLAP, KEY_SIDELAP, KEY_ALTITUDE, KEY_SPEED, KEY_REQUEST, KEY_CLIENT_ID,
-            KEY_DISPLAY, KEY_CAMERA, KEY_BOUNDARY_FARM_ID, KEY_BOUNDARY_CROPTYPE_ID};
+            KEY_DISPLAY, KEY_CAMERA, KEY_BOUNDARY_FARM_ID, KEY_BOUNDARY_CROPTYPE_ID, KEY_POLYGON_ALTITUDES};
 
     private static final String TABLE_CROPTYPES = "croptypes";
     private static final String KEY_CROPTYPE = "croptype";
@@ -84,9 +85,9 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             KEY_FARMNAME + " TEXT NOT NULL, " + KEY_FARMNAME_ID + " INTEGER, " + KEY_CLIENT_ID + " INTEGER, " + KEY_FARMNAME_CROP_FAMILY_ID + " TEXT, " + "UNIQUE(" + KEY_FARMNAME_ID + ")" +  " ON CONFLICT IGNORE)";
 
     private static final String CREATE_BOUNDARY_TABLE = "CREATE TABLE IF NOT EXISTS Boundaries (" + KEY_ID +  " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-            "boundary_id TEXT, " + KEY_POINTS + " TEXT, " + "name TEXT, " + "angle INTEGER, " + "overlap INTEGER, " + "sidelap INTEGER, "
-            + "altitude INTEGER, " + "speed INTEGER, request TEXT, client_id INTEGER, display INTEGER, camera TEXT, farm_id INTEGER," +
-            " crop_type_id INTEGER, UNIQUE(" + KEY_BOUNDARY_ID + ")" + " ON CONFLICT IGNORE)";
+            KEY_BOUNDARY_ID + " TEXT, " + KEY_POINTS + " TEXT, " + KEY_NAME + " TEXT, " + KEY_ANGLE + " INTEGER, " + KEY_OVERLAP + " INTEGER, " + KEY_SIDELAP + " INTEGER, "
+            + KEY_ALTITUDE + " INTEGER, " + KEY_SPEED + " INTEGER," + KEY_REQUEST + " TEXT," + KEY_CLIENT_ID + " INTEGER," + KEY_DISPLAY + " INTEGER," + KEY_CAMERA + " TEXT," +
+            KEY_BOUNDARY_FARM_ID + " INTEGER," + KEY_BOUNDARY_CROPTYPE_ID + " INTEGER," + KEY_POLYGON_ALTITUDES + " TEXT," + " UNIQUE(" + KEY_BOUNDARY_ID + ")" + " ON CONFLICT IGNORE)";
 
     private static final String CREATE_MISSION_DETAILS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MISSION_DETAILS + " (" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
             KEY_MISSION_WAYPOINTS + " TEXT NOT NULL, " + KEY_MISSION_ALTITUDE + " REAL, " + KEY_MISSION_IMAGE_DISTANCE + " REAL, " + KEY_MISSION_SPEED + " REAL) ";
@@ -146,6 +147,10 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             upgradeVersion8(db);
         }
 
+        if (oldVersion < 9) {
+            upgradeVersion9(db);
+        }
+
     }
 
     private void upgradeVersion2(SQLiteDatabase db){
@@ -183,6 +188,10 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("ALTER TABLE " + TABLE_BOUNDARIES + " ADD COLUMN " + KEY_BOUNDARY_CROPTYPE_ID + " INTEGER");
         // db.execSQL("ALTER TABLE " + TABLE_FARMNAMES + " ADD COLUMN " + KEY_FARMNAME_CROP_FAMILY_ID + " TEXT");
         db.execSQL(CREATE_CROP_FAMILIES_TABLE);
+    }
+
+    private void upgradeVersion9(SQLiteDatabase db) {
+        db.execSQL("ALTER TABLE " + TABLE_BOUNDARIES + " ADD COLUMN " + KEY_POLYGON_ALTITUDES + " TEXT");
     }
 
     public List<MissionDetails> getAllMissionDetails(){
@@ -235,6 +244,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                 try {
                     jsonObject.put("name", c.getString(c.getColumnIndex(KEY_NAME)));
                     jsonObject.put("polygon", c.getString(c.getColumnIndex(KEY_POINTS)));
+                    jsonObject.put("polygon_altitudes", c.getString(c.getColumnIndex(KEY_POLYGON_ALTITUDES)));
                     jsonObject.put("client_id", c.getString(c.getColumnIndex(KEY_CLIENT_ID)));
                     jsonObject.put("farm_id", farmId);
                     jsonObject.put("crop_type_id", c.getString(c.getColumnIndex(KEY_BOUNDARY_CROPTYPE_ID)));
@@ -260,6 +270,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                 try {
                     jsonObject.put("name", c.getString(c.getColumnIndex(KEY_NAME)));
                     jsonObject.put("polygon", c.getString(c.getColumnIndex(KEY_POINTS)));
+                    jsonObject.put("polygon_altitudes", c.getString(c.getColumnIndex(KEY_POLYGON_ALTITUDES)));
                     jsonObject.put("client_id", c.getString(c.getColumnIndex(KEY_CLIENT_ID)));
                     jsonObject.put("farm_id", c.getString(c.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
                     jsonObject.put("crop_type_id", c.getString(c.getColumnIndex(KEY_BOUNDARY_CROPTYPE_ID)));
@@ -553,12 +564,12 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                 values.put(KEY_NAME, boundaryDetail.getName());
                 values.put(KEY_BOUNDARY_ID, boundaryDetail.getBoundaryId());
                 values.put(KEY_POINTS, boundaryDetail.getPoints());
+                values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
                 values.put(KEY_ANGLE, boundaryDetail.getAngle());
                 values.put(KEY_OVERLAP, boundaryDetail.getOverlap());
                 values.put(KEY_SIDELAP, boundaryDetail.getSidelap());
                 values.put(KEY_ALTITUDE, boundaryDetail.getAltitude());
                 values.put(KEY_SPEED, boundaryDetail.getSpeed());
-                values.put(KEY_DISPLAY, boundaryDetail.isDisplay());
                 values.put(KEY_CAMERA, boundaryDetail.getCamera());
                 values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
                 // insert
@@ -576,20 +587,22 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             cursor.moveToFirst();
         }
         BoundaryDetail boundaryDetail = new BoundaryDetail();
-        boundaryDetail.setName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
-        boundaryDetail.setBoundaryId(cursor.getString(cursor.getColumnIndex(KEY_BOUNDARY_ID)));
-        boundaryDetail.setPoints(cursor.getString(cursor.getColumnIndex(KEY_POINTS)));
-        boundaryDetail.setAngle((double)cursor.getInt(cursor.getColumnIndex(KEY_ANGLE)));
-        boundaryDetail.setOverlap((double)cursor.getInt(cursor.getColumnIndex(KEY_OVERLAP)));
-        boundaryDetail.setSidelap((double)cursor.getInt(cursor.getColumnIndex(KEY_SIDELAP)));
-        boundaryDetail.setAltitude((double)cursor.getInt(cursor.getColumnIndex(KEY_ALTITUDE)));
-        boundaryDetail.setSpeed((double)cursor.getInt(cursor.getColumnIndex(KEY_SPEED)));
-        boundaryDetail.setClientId(cursor.getInt(cursor.getColumnIndex(KEY_CLIENT_ID)));
-        boundaryDetail.setDisplay(cursor.getInt(cursor.getColumnIndex(KEY_DISPLAY)) == 1);
-        boundaryDetail.setCamera(cursor.getString(cursor.getColumnIndex(KEY_CAMERA)));
-        boundaryDetail.setFarmId(cursor.getInt(cursor.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
-        cursor.close();
-        db.close();
+        if (isBoundaryInDB(id, db)){
+            boundaryDetail.setName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
+            boundaryDetail.setBoundaryId(cursor.getString(cursor.getColumnIndex(KEY_BOUNDARY_ID)));
+            boundaryDetail.setPoints(cursor.getString(cursor.getColumnIndex(KEY_POINTS)));
+            boundaryDetail.setPointAltitudes(cursor.getString(cursor.getColumnIndex(KEY_POLYGON_ALTITUDES)));
+            boundaryDetail.setAngle((double) cursor.getInt(cursor.getColumnIndex(KEY_ANGLE)));
+            boundaryDetail.setOverlap((double) cursor.getInt(cursor.getColumnIndex(KEY_OVERLAP)));
+            boundaryDetail.setSidelap((double) cursor.getInt(cursor.getColumnIndex(KEY_SIDELAP)));
+            boundaryDetail.setAltitude((double) cursor.getInt(cursor.getColumnIndex(KEY_ALTITUDE)));
+            boundaryDetail.setSpeed((double) cursor.getInt(cursor.getColumnIndex(KEY_SPEED)));
+            boundaryDetail.setClientId(cursor.getInt(cursor.getColumnIndex(KEY_CLIENT_ID)));
+            boundaryDetail.setCamera(cursor.getString(cursor.getColumnIndex(KEY_CAMERA)));
+            boundaryDetail.setFarmId(cursor.getInt(cursor.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
+            cursor.close();
+            db.close();
+        }
         return boundaryDetail;
     }
 
@@ -599,21 +612,24 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         String query = "SELECT * FROM " + TABLE_BOUNDARIES + " WHERE " + KEY_BOUNDARY_FARM_ID + " IN (" + activeFarmIds + ") ";
 
         Cursor cursor = db.rawQuery(query, null);
-        if (cursor.moveToFirst()) {
+        if (cursor != null && cursor.moveToFirst()) {
             do {
                 BoundaryDetail boundaryDetail = new BoundaryDetail();
-                boundaryDetail.setName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
-                boundaryDetail.setBoundaryId(cursor.getString(cursor.getColumnIndex(KEY_BOUNDARY_ID)));
-                boundaryDetail.setPoints(cursor.getString(cursor.getColumnIndex(KEY_POINTS)));
-                boundaryDetail.setAngle((double)cursor.getInt(cursor.getColumnIndex(KEY_ANGLE)));
-                boundaryDetail.setOverlap((double)cursor.getInt(cursor.getColumnIndex(KEY_OVERLAP)));
-                boundaryDetail.setSidelap((double)cursor.getInt(cursor.getColumnIndex(KEY_SIDELAP)));
-                boundaryDetail.setAltitude((double)cursor.getInt(cursor.getColumnIndex(KEY_ALTITUDE)));
-                boundaryDetail.setSpeed((double)cursor.getInt(cursor.getColumnIndex(KEY_SPEED)));
-                boundaryDetail.setClientId(cursor.getInt(cursor.getColumnIndex(KEY_CLIENT_ID)));
-                boundaryDetail.setDisplay(cursor.getInt(cursor.getColumnIndex(KEY_DISPLAY)) == 1);
-                boundaryDetail.setFarmId(cursor.getInt(cursor.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
-                boundaryDetails.add(boundaryDetail);
+                try {
+                    boundaryDetail.setName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
+                    boundaryDetail.setBoundaryId(cursor.getString(cursor.getColumnIndex(KEY_BOUNDARY_ID)));
+                    boundaryDetail.setPoints(cursor.getString(cursor.getColumnIndex(KEY_POINTS)));
+                    boundaryDetail.setPointAltitudes(cursor.getString(cursor.getColumnIndex(KEY_POLYGON_ALTITUDES)));
+                    boundaryDetail.setAngle((double) cursor.getInt(cursor.getColumnIndex(KEY_ANGLE)));
+                    boundaryDetail.setOverlap((double) cursor.getInt(cursor.getColumnIndex(KEY_OVERLAP)));
+                    boundaryDetail.setSidelap((double) cursor.getInt(cursor.getColumnIndex(KEY_SIDELAP)));
+                    boundaryDetail.setAltitude((double) cursor.getInt(cursor.getColumnIndex(KEY_ALTITUDE)));
+                    boundaryDetail.setSpeed((double) cursor.getInt(cursor.getColumnIndex(KEY_SPEED)));
+                    boundaryDetail.setClientId(cursor.getInt(cursor.getColumnIndex(KEY_CLIENT_ID)));
+                    boundaryDetail.setFarmId(cursor.getInt(cursor.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
+                } finally {
+                    boundaryDetails.add(boundaryDetail);
+                }
             } while (cursor.moveToNext());
         }
 
@@ -630,13 +646,13 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_NAME, boundaryDetail.getName());
         values.put(KEY_POINTS, boundaryDetail.getPoints());
+        values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
         values.put(KEY_ANGLE, boundaryDetail.getAngle());
         values.put(KEY_OVERLAP, boundaryDetail.getOverlap());
         values.put(KEY_SIDELAP, boundaryDetail.getSidelap());
         values.put(KEY_ALTITUDE, boundaryDetail.getAltitude());
         values.put(KEY_SPEED, boundaryDetail.getSpeed());
         values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
-        values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
         values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
         values.put(KEY_BOUNDARY_CROPTYPE_ID, boundaryDetail.getCropTypeId());
         long primary_key = db.insert(TABLE_BOUNDARIES, null, values);
@@ -677,8 +693,9 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_ALTITUDE, (int) boundaryDetail.getAltitude());
         values.put(KEY_SPEED, (int) boundaryDetail.getSpeed());
         values.put(KEY_POINTS, boundaryDetail.getPoints());
+        values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
         values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
-        values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
+        // values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
         values.put(KEY_CAMERA, boundaryDetail.getCamera());
         values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
 
@@ -694,7 +711,8 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_NAME, boundaryDetail.getName());
         values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
         values.put(KEY_POINTS, boundaryDetail.getPoints());
-        values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
+        values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
+        //values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
         values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
 
         int i = db.update(TABLE_BOUNDARIES, // table
@@ -766,13 +784,14 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                     values.put(KEY_NAME, boundaryDetail.getName());
                     values.put(KEY_BOUNDARY_ID, boundaryDetail.getBoundaryId());
                     values.put(KEY_POINTS, boundaryDetail.getPoints());
+                    values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
                     values.put(KEY_ANGLE, boundaryDetail.getAngle());
                     values.put(KEY_OVERLAP, boundaryDetail.getOverlap());
                     values.put(KEY_SIDELAP, boundaryDetail.getSidelap());
                     values.put(KEY_ALTITUDE, boundaryDetail.getAltitude());
                     values.put(KEY_SPEED, boundaryDetail.getSpeed());
                     values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
-                    values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
+                    // values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
                     values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
 
                     // insert

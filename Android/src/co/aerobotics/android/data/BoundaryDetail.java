@@ -1,6 +1,12 @@
 package co.aerobotics.android.data;
 
+import com.goebl.simplify.Simplify;
+import com.google.android.gms.maps.model.LatLng;
 import com.o3dr.services.android.lib.drone.mission.item.complex.CameraDetail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by michaelwootton on 8/23/17.
@@ -9,31 +15,31 @@ import com.o3dr.services.android.lib.drone.mission.item.complex.CameraDetail;
 public class BoundaryDetail {
 
     private String boundary_id;
-    private double altitude = 60;
+    private double altitude = 100;
     private double angle = 180;
     private double overlap = 70;
-    private double sidelap = 70;
-    private double speed = 10;
+    private double sidelap = 75;
+    private double speed = 12;
     private String name;
     private String points = "";
+    private String pointAltitudes = "";
     private int clientId;
     private String camera = "";
     private Integer cropTypeId;
 
-    private boolean display;
     private int farmId;
 
     public BoundaryDetail(){
 
     }
 
-    public BoundaryDetail(String name, String boundary_id, String points, int clientId, Integer cropTypeId, boolean display, int farmId) {
+    public BoundaryDetail(String name, String boundary_id, String points, String pointAltitudes, int clientId, Integer cropTypeId, int farmId) {
         this.name = name;
         this.boundary_id = boundary_id;
         this.points = points;
+        this.pointAltitudes = pointAltitudes;
         this.clientId = clientId;
         this.cropTypeId = cropTypeId;
-        this.display = display;
         this.farmId = farmId;
     }
 /*
@@ -112,6 +118,23 @@ public class BoundaryDetail {
         this.points = points;
     }
 
+    public String getPointAltitudes() { return pointAltitudes; }
+
+    public List<Double> getPointAltitudesAsList() {
+        if (this.pointAltitudes != null && !this.pointAltitudes.equals("")) {
+            String[] pointAltitudeStrings = this.pointAltitudes.split(",");
+            ArrayList<Double> outputDoubles = new ArrayList<Double>();
+            for (String item : pointAltitudeStrings) {
+                outputDoubles.add(Double.parseDouble(item));
+            }
+            return outputDoubles;
+        } else {
+            return null;
+            }
+    }
+
+    public void setPointAltitudes(String pointAltitudes) { this.pointAltitudes = pointAltitudes; }
+
     public int getClientId() {
         return clientId;
     }
@@ -121,11 +144,7 @@ public class BoundaryDetail {
     }
 
     public boolean isDisplay() {
-        return display;
-    }
-
-    public void setDisplay(boolean display) {
-        this.display = display;
+        return true;
     }
 
     public String getCamera() {

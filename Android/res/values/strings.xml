@@ -30,6 +30,7 @@
     <string name="croptypes">Crop types from Aeroview</string>
     <string name="farms">Client farms from Aeroview</string>
     <string name="active_farms">Farms selected by client to fly</string>
+    <string name="service_provider_farms">List of service provider farm ids</string>
     <!-- Drone Setup tabs -->
     <string name="screen_cal">Calibration</string>
     <string name="screen_checklist">Checklist</string>
@@ -80,6 +81,9 @@
     <string name="user_autopan_long_press">Long press to activate user auto panning.</string>
     <string name="drone_autopan_long_press">Long press to activate drone auto panning.</string>
     <string name="drone_no_location">No drone location available</string>
+    <string name="nav_to_one_farm">You have selected multiple farms. Please only select one farm to navigate to.</string>
+    <string name="no_farms_selected">Please select a farm to navigate to.</string>
+    <string name="confirm_nav_to_farm">This will open your maps application to navigate to the selected farm. Continue?</string>
 
     <!-- Connection State -->
     <string name="menu_connect">Connect</string>
@@ -191,6 +195,8 @@
     <string name="structure_scan_start_alt">Start altitude</string>
     <string name="structure_scan_step_height">Step height</string>
     <string name="stucture_scanner_cross_hatch">Cross Hatch</string>
+    <string name="yes_without_terrain_follow">Yes, without Terrain Following</string>
+    <string name="yes_with_terrain_follow">Yes, with Terrain Following</string>
 
     <string name="dlg_clear_mission_title">Mission</string>
     <string name="dlg_clear_mission_confirm">Clear all waypoints from the map?</string>
@@ -724,11 +730,13 @@
     <!-- Strings related to login -->
     <string name="create_account">Create AeroView account</string>
     <string name="prompt_email">Email Address</string>
+    <string name="prompt_phonenumber">Phone Number</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_in_short">Login</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_phonenumber">This number is invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email

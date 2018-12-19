@@ -509,7 +509,7 @@ public class EditorToolsFragment extends ApiListenerFragment implements OnClickL
             for (LatLng point : mergedPoints) {
                 dronekitPoly.add(new LatLong(point.latitude, point.longitude));
             }
-            getMissionProxy().addSurveyPolygon(dronekitPoly, false);
+            getMissionProxy().addSurveyPolygon(dronekitPoly, false, true);
             DroidPlannerApp.getInstance().getSelectedPolygons().clear();
             LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(new Intent(AeroviewPolygons.ACTION_POLYGON_UPDATE));
 

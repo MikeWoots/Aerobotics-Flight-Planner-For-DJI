@@ -17,11 +17,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <!-- BaiduMap dependencies -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -93,6 +91,10 @@
 
         <!-- <service android:name="dji.sdk.sdkmanager.DJIGlobalService" /> -->
 
+        <!-- Google Elevation API key -->
+        <meta-data
+            android:name="com.google.maps.elevation.API_KEY"
+            android:value="${googleElevationKey}" />
 
         <!-- You must insert your own Google Maps for Android API v2 key in here. -->
         <meta-data
@@ -136,7 +138,7 @@
             android:label="@string/editor"
             android:launchMode="singleTop"
             android:theme="@style/CustomActionBarTheme.Transparent"
-            android:windowSoftInputMode="adjustNothing">
+            android:windowSoftInputMode="adjustPan|stateHidden">
 
             <!-- Intent for opening mission files -->
             <intent-filter>

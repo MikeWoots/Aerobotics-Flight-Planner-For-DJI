@@ -36,9 +36,10 @@ import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
 import dji.sdk.mission.MissionControl;
-import dji.sdk.mission.timeline.Mission;
+import dji.sdk.mission.timeline.TimelineMission;
 import dji.sdk.mission.timeline.TimelineElement;
 import dji.sdk.mission.timeline.TimelineEvent;
+import dji.sdk.mission.timeline.TimelineMission;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
 import dji.sdk.sdkmanager.DJISDKManager;
 
@@ -219,7 +220,7 @@ public class TimelineMissionImpl extends DJIMissionImpl {
     private List<TimelineElement> getTimelineElements(List<WaypointMission> waypointMissions) {
         List<TimelineElement> elements = new ArrayList<>();
         for (WaypointMission mission : waypointMissions) {
-            elements.add(Mission.elementFromWaypointMission(mission));
+            elements.add(TimelineMission.elementFromWaypointMission(mission));
         }
         return elements;
     }
@@ -241,7 +242,16 @@ public class TimelineMissionImpl extends DJIMissionImpl {
                 float altitude = (float) ((Survey) item).getSurveyDetail().getAltitude();
                 float speed = (float) ((Survey) item).getSurveyDetail().getSpeed();
                 float imageDistance = (float) ((Survey) item).getSurveyDetail().getLongitudinalPictureDistance();
-                MissionDetails missionDetails = getCurrentMissionDetails(points, speed, imageDistance, altitude);
+
+                List<Double> pointHeights = new ArrayList<Double>();
+
+                // Big fail if this is actually used. Code for point height calculations all in DJIMissionImpl.java
+
+                for (int i = 0; i < points.size(); i++) {
+                    pointHeights.add(0.0);
+                }
+
+                MissionDetails missionDetails = getCurrentMissionDetails(points, speed, imageDistance, altitude, pointHeights);
                 missionsToSurvey.add(missionDetails);
             }
         }
@@ -269,10 +279,12 @@ public class TimelineMissionImpl extends DJIMissionImpl {
             if (i == missionsToSurvey.size() - 1) {
                 waypointMissions.add(buildMission(missionsToSurvey.get(i),
                         getWaypointsFromString(missionsToSurvey.get(i).getWaypoints(), 0),
+                        getWaypointsAltitudesFromString(missionsToSurvey.get(i).getWaypointAltitudes(), 0),
                         WaypointMissionFinishedAction.GO_HOME));
             } else {
                 waypointMissions.add(buildMission(missionsToSurvey.get(i),
                         getWaypointsFromString(missionsToSurvey.get(i).getWaypoints(), 0),
+                        getWaypointsAltitudesFromString(missionsToSurvey.get(i).getWaypointAltitudes(), 0),
                         WaypointMissionFinishedAction.NO_ACTION));
             }
         }

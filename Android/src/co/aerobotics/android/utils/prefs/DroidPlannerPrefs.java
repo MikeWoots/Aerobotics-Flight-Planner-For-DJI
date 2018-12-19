@@ -658,23 +658,23 @@ public class DroidPlannerPrefs {
         surveyDetail.setLockOrientation(prefs.getBoolean(PREF_SURVEY_LOCK_ORIENTATION, false));
 
         // Load the sidelap.
-        surveyDetail.setSidelap(prefs.getFloat(PREF_SURVEY_SIDELAP, 70));
+        surveyDetail.setSidelap(prefs.getFloat(PREF_SURVEY_SIDELAP, 75));
 
         // Load the overlap.
         surveyDetail.setOverlap(prefs.getFloat(PREF_SURVEY_OVERLAP, 70));
 
         // Load the altitude.
-        surveyDetail.setAltitude(prefs.getFloat(PREF_SURVEY_ALTITUDE, 60));
+        surveyDetail.setAltitude(prefs.getFloat(PREF_SURVEY_ALTITUDE, 100));
 
         // Load the survey angle.
         surveyDetail.setAngle(prefs.getFloat(PREF_SURVEY_ANGLE, 180));
 
         // Load the survey speed
-        surveyDetail.setSpeed(prefs.getFloat(PREF_SURVEY_SPEED, 10));
+        surveyDetail.setSpeed(prefs.getFloat(PREF_SURVEY_SPEED, 12));
 
         surveyDetail.setSaveable(prefs.getBoolean(PREF_SURVEY_SAVEABLE, true));
 
-        surveyDetail.setSunny(prefs.getBoolean(PREF_SURVEY_SUNNY, true));
+        surveyDetail.setSunny(prefs.getBoolean(PREF_SURVEY_SUNNY, false));
 
         // Load the camera name
         String cameraName = prefs.getString(PREF_SURVEY_CAMERA_NAME, null);
