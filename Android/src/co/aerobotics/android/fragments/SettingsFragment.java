@@ -40,7 +40,6 @@ import org.beyene.sius.unit.length.LengthUnit;
 
 import co.aerobotics.android.R;
 
-import co.aerobotics.android.fragments.widget.WidgetsListPrefFragment;
 import co.aerobotics.android.maps.providers.DPMapProvider;
 import co.aerobotics.android.utils.Utils;
 import co.aerobotics.android.utils.unit.providers.length.LengthUnitProvider;
@@ -205,7 +204,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
             Log.e(TAG, "Unable to retrieve version name.", e);
         }
 
-        setupWidgetsPreferences();
+        //setupWidgetsPreferences();
         setupMapProviders();
         setupPeriodicControls();
         setupAdvancedMenu();
@@ -217,18 +216,18 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         setupSpeedPreferences();
     }
 
-    private void setupWidgetsPreferences(){
-        final Preference widgetsPref = findPreference(DroidPlannerPrefs.PREF_TOWER_WIDGETS);
-        if(widgetsPref != null){
-            widgetsPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    new WidgetsListPrefFragment().show(getFragmentManager(), "Widgets List Preferences");
-                    return true;
-                }
-            });
-        }
-    }
+//    private void setupWidgetsPreferences(){
+//        final Preference widgetsPref = findPreference(DroidPlannerPrefs.PREF_TOWER_WIDGETS);
+//        if(widgetsPref != null){
+//            widgetsPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+//                @Override
+//                public boolean onPreferenceClick(Preference preference) {
+//                    new WidgetsListPrefFragment().show(getFragmentManager(), "Widgets List Preferences");
+//                    return true;
+//                }
+//            });
+//        }
+//    }
 
     private void setupMapProviders(){
         // Populate the map preference category

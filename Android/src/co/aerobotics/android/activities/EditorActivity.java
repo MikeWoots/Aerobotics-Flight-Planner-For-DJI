@@ -686,7 +686,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                     //resumePreviousMission = false;
 
                     if (DroneListener.debuggingWithoutDrone) {
-                        missionControl.initializeMission(missionProxy, getApplicationContext(), false);
+                        missionControl.initializeMission(missionProxy, getApplicationContext(), true);
                     } else {
                         if (DroidPlannerApp.isProductConnected()) {
                             confirmMissionStart(EditorActivity.this);

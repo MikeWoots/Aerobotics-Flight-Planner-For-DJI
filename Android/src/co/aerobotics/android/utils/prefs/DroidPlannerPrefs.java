@@ -7,7 +7,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
-import co.aerobotics.android.fragments.widget.video.WidgetVideoPreferences;
+//import co.aerobotics.android.fragments.widget.video.WidgetVideoPreferences;
 import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
@@ -17,7 +17,7 @@ import com.o3dr.services.android.lib.drone.mission.item.complex.SurveyDetail;
 import com.o3dr.services.android.lib.drone.property.CameraProxy;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 
-import co.aerobotics.android.fragments.widget.TowerWidgets;
+//import co.aerobotics.android.fragments.widget.TowerWidgets;
 import co.aerobotics.android.maps.providers.DPMapProvider;
 import co.aerobotics.android.utils.Utils;
 import co.aerobotics.android.utils.unit.systems.UnitSystem;
@@ -556,13 +556,13 @@ public class DroidPlannerPrefs {
         return prefs.getBoolean(PREF_IS_TTS_ENABLED, DEFAULT_TTS_ENABLED);
     }
 
-    public void enableWidget(TowerWidgets widget, boolean enable){
-        prefs.edit().putBoolean(widget.getPrefKey(), enable).apply();
-    }
-
-    public boolean isWidgetVisible(TowerWidgets widget) {
-        return prefs.getBoolean(widget.getPrefKey(), widget.isVisibleByDefault());
-    }
+//    public void enableWidget(TowerWidgets widget, boolean enable){
+//        prefs.edit().putBoolean(widget.getPrefKey(), enable).apply();
+//    }
+//
+//    public boolean isWidgetVisible(TowerWidgets widget) {
+//        return prefs.getBoolean(widget.getPrefKey(), widget.isVisibleByDefault());
+//    }
 
     public boolean isReturnToMeEnabled() {
         return prefs.getBoolean(PREF_RETURN_TO_ME, DEFAULT_RETURN_TO_ME);
@@ -577,15 +577,15 @@ public class DroidPlannerPrefs {
         return prefs.getBoolean(PREF_VEHICLE_HOME_UPDATE_WARNING, DEFAULT_VEHICLE_HOME_UPDATE_WARNING);
     }
 
-    public void setVideoWidgetType(@WidgetVideoPreferences.VideoType int videoType){
-        prefs.edit().putInt(PREF_WIDGET_VIDEO_TYPE, videoType).apply();
-    }
-
-    @WidgetVideoPreferences.VideoType
-    public int getVideoWidgetType(){
-        @WidgetVideoPreferences.VideoType final int videoType = prefs.getInt(PREF_WIDGET_VIDEO_TYPE, WidgetVideoPreferences.SOLO_VIDEO_TYPE);
-        return videoType;
-    }
+//    public void setVideoWidgetType(@WidgetVideoPreferences.VideoType int videoType){
+//        prefs.edit().putInt(PREF_WIDGET_VIDEO_TYPE, videoType).apply();
+//    }
+//
+//    @WidgetVideoPreferences.VideoType
+//    public int getVideoWidgetType(){
+//        @WidgetVideoPreferences.VideoType final int videoType = prefs.getInt(PREF_WIDGET_VIDEO_TYPE, WidgetVideoPreferences.SOLO_VIDEO_TYPE);
+//        return videoType;
+//    }
 
     public void setCustomVideoUdpPort(int udpPort){
         prefs.edit().putInt(PREF_CUSTOM_VIDEO_UDP_PORT, udpPort).apply();
