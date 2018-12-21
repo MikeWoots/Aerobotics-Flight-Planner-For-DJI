@@ -427,11 +427,9 @@ public class AeroviewPolygons implements APIContract{
      * Checks if polygon altitudes are saved locally to prevent unnecessary API calls
      */
     public boolean polygonPointAltitudesEmpty(String id) {
-        if (sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes() == null || sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes().equals("")) {
+        if (sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes() == null) {
             return true;
-        } else {
-            return false;
-        }
+        } else return sqLiteDatabaseHandler.getBoundaryDetail(id).getPointAltitudes().equals("");
     }
 
     /*

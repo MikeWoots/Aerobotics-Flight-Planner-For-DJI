@@ -70,6 +70,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_MISSION_ALTITUDE = "mission_details_altitude";
     private static final String KEY_MISSION_IMAGE_DISTANCE = "mission_details_image_distance";
     private static final String KEY_MISSION_SPEED = "mission_details_speed";
+    private static final String KEY_MISSION_WAYPOINTS_ALTITUDES = "mission_details_waypoints_altitudes";
 
     private static final String TABLE_CROP_FAMILIES = "crop_families";
     private static final String KEY_CROP_FAMILY_ID = "crop_family_id";
@@ -90,7 +91,8 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             KEY_BOUNDARY_FARM_ID + " INTEGER," + KEY_BOUNDARY_CROPTYPE_ID + " INTEGER," + KEY_POLYGON_ALTITUDES + " TEXT," + " UNIQUE(" + KEY_BOUNDARY_ID + ")" + " ON CONFLICT IGNORE)";
 
     private static final String CREATE_MISSION_DETAILS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_MISSION_DETAILS + " (" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-            KEY_MISSION_WAYPOINTS + " TEXT NOT NULL, " + KEY_MISSION_ALTITUDE + " REAL, " + KEY_MISSION_IMAGE_DISTANCE + " REAL, " + KEY_MISSION_SPEED + " REAL) ";
+            KEY_MISSION_WAYPOINTS + " TEXT NOT NULL, " + KEY_MISSION_ALTITUDE + " REAL, " + KEY_MISSION_IMAGE_DISTANCE + " REAL, " + KEY_MISSION_SPEED + " REAL, "
+            + KEY_MISSION_WAYPOINTS_ALTITUDES + " TEXT NOT NULL) ";
 
     private static String CREATE_CROP_FAMILIES_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_CROP_FAMILIES +  " (" + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
             KEY_CROP_FAMILY_ID + " INTEGER, " + KEY_CROP_FAMILY_NAME + " TEXT)";
@@ -151,6 +153,10 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             upgradeVersion9(db);
         }
 
+        if (oldVersion < 10) {
+            upgradeVersion10(db);
+        }
+
     }
 
     private void upgradeVersion2(SQLiteDatabase db){
@@ -194,6 +200,10 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("ALTER TABLE " + TABLE_BOUNDARIES + " ADD COLUMN " + KEY_POLYGON_ALTITUDES + " TEXT");
     }
 
+    private void upgradeVersion10(SQLiteDatabase db) {
+        db.execSQL("ALTER TABLE " + TABLE_MISSION_DETAILS + " ADD COLUMN " + KEY_MISSION_WAYPOINTS_ALTITUDES + " TEXT");
+    }
+
     public List<MissionDetails> getAllMissionDetails(){
         SQLiteDatabase db = this.getReadableDatabase();
         List<MissionDetails> missionDetailsList = new ArrayList<>();
@@ -206,6 +216,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                 missionDetails.setImageDistance(cursor.getFloat(cursor.getColumnIndex(KEY_MISSION_IMAGE_DISTANCE)));
                 missionDetails.setWaypoints(cursor.getString(cursor.getColumnIndex(KEY_MISSION_WAYPOINTS)));
                 missionDetails.setSpeed(cursor.getFloat(cursor.getColumnIndex(KEY_MISSION_SPEED)));
+                missionDetails.setWaypointAltitudes(cursor.getString(cursor.getColumnIndex(KEY_MISSION_WAYPOINTS_ALTITUDES)));
                 missionDetailsList.add(missionDetails);
             } while (cursor.moveToNext());
         }
@@ -222,6 +233,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             values.put(KEY_MISSION_IMAGE_DISTANCE, missionDetails.getImageDistance());
             values.put(KEY_MISSION_WAYPOINTS, missionDetails.getWaypoints());
             values.put(KEY_MISSION_SPEED, missionDetails.getSpeed());
+            values.put(KEY_MISSION_WAYPOINTS_ALTITUDES, missionDetails.getWaypointAltitudes());
             db.insert(TABLE_MISSION_DETAILS, null, values);
         }
         db.close();

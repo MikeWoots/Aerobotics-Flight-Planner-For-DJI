@@ -231,7 +231,6 @@ public class DJIMissionImpl {
             if (missionsToSurvey == null || missionsToSurvey.isEmpty()) {
                 return;
             }
-            //isValidMission();
             setCameraParameters(missionProxy);
         }
 
@@ -619,11 +618,13 @@ public class DJIMissionImpl {
         /**
          * Return list of MissionDetails objects from local db
          */
-        int startWaypointIndex = sharedPreferences.getInt(context.getString(R.string.last_waypoint_index), -1);
+        int startWaypointIndex = sharedPreferences.getInt(context.getString(R.string.last_waypoint_index), 0);
         List<MissionDetails> missionDetailsList = getPreviousMissionDetails(context);
-        List<MissionDetails> missionsToSurvey = missionDetailsList.subList(sharedPreferences.getInt(context.getString(R.string.survey_index), -1), missionDetailsList.size());
+        List<MissionDetails> missionsToSurvey = missionDetailsList.subList(sharedPreferences.getInt(context.getString(R.string.survey_index), 0), missionDetailsList.size());
         List<LatLong> newFirstBoundaryWaypoints = getWaypointsFromString(missionsToSurvey.get(0).getWaypoints(), startWaypointIndex);
+        List<Double> altitudesOfNewWaypoints = getWaypointsAltitudesFromString(missionsToSurvey.get(0).getWaypointAltitudes(), startWaypointIndex);
         missionsToSurvey.get(0).setWaypoints(convertWaypointToString(newFirstBoundaryWaypoints));
+        missionsToSurvey.get(0).setWaypointAltitudes(convertDoubleListToString(altitudesOfNewWaypoints));
         return missionsToSurvey;
     }
 
