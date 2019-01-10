@@ -91,7 +91,9 @@ public class SearchBoundariesDialog extends DialogFragment {
         ArrayList<NameWithId> nameWithIds = new ArrayList<NameWithId>();
 
         for (BoundaryDetail boundaryDetail : boundaryDetailList){
-            nameWithIds.add(new NameWithId(boundaryDetail.getName(), boundaryDetail.getBoundaryId()));
+            if (boundaryDetail.isDisplay()) {
+                nameWithIds.add(new NameWithId(boundaryDetail.getName(), boundaryDetail.getBoundaryId()));
+            }
         }
 
         Collections.sort(nameWithIds, NameWithId.Comparators.NAME);

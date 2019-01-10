@@ -87,7 +87,7 @@ public class DJIMissionImpl {
     public ImageImpl imageImpl;
     private SurveyDetail surveyDetail;
     private FlightControllerKey goHomeKey = FlightControllerKey.create(FlightControllerKey.START_GO_HOME);
-    public static boolean useTerrainFollowing = false;
+    private boolean useTerrainFollowing = false;
 
     private Handler mainHandler = new Handler(Looper.getMainLooper());
     private Context context;
@@ -200,7 +200,6 @@ public class DJIMissionImpl {
 
     public void initializeMission(MissionProxy missionProxy, final Context context, boolean resume) {
         this.context = context;
-
         if (DroidPlannerApp.isFirmwareNewVersion() == null) {
             DroidPlannerApp.getInstance().getFirmwareVersion();
         }
@@ -222,6 +221,9 @@ public class DJIMissionImpl {
         }
 
         sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
+        boolean terrainFollowingEnabled = sharedPreferences.getBoolean(context.getString(R.string.terrainFollowingEnabled), false);
+        boolean terrainDataAvailable = sharedPreferences.getBoolean(context.getString(R.string.terrainDataAvailable), false);
+        useTerrainFollowing = terrainDataAvailable && terrainFollowingEnabled;
         List<MissionDetails> missionsToSurvey;
         if (resume) {
             missionsToSurvey = getMissionDetailsFromDb(context, sharedPreferences);
@@ -308,8 +310,8 @@ public class DJIMissionImpl {
             //            double currentLat = -33.94825;
             //            double currentLong = 18.408898;
          // Aerobotics offices
-            double currentLat = -33.930212;
-            double currentLong = 18.443295;
+            double currentLat = -33.93326713277026;
+            double currentLong = 18.444487341197146;
 
             currentCoords = new LatLong(currentLat, currentLong);
             flightController = null;
@@ -338,7 +340,6 @@ public class DJIMissionImpl {
 
             if (item instanceof Survey) {
                 List<LatLong> gridPoints = ((Survey) item).getGridPoints();
-                LatLong lastPoint = gridPoints.get(gridPoints.size() - 1);
                 List<LatLong> polygonPoints = ((Survey) item).getPolygonPoints();
                 List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
                 float altitude = (float) ((Survey) item).getSurveyDetail().getAltitude();
@@ -370,61 +371,65 @@ public class DJIMissionImpl {
                 if (isValidTriggerSpeed(imageDistance, speed)) {
                     MissionDetails missionDetails = getCurrentMissionDetails(gridPoints, speed, imageDistance, altitude, gridPointHeights);
 
-                    returnToLaunchAlt = Math.max(getHighestWaypoint(missionDetails), returnToLaunchAlt);
+                    returnToLaunchAlt = Math.max(getHighestWaypoint(missionDetails) + altitude, returnToLaunchAlt);
                     returnToLaunchAlt = Math.max(20, Math.min(500, (int) Math.ceil(returnToLaunchAlt))); // Must be between 20m & 500m
 
                     if (!DroneListener.debuggingWithoutDrone && flightController != null) {
-                        flightController.setGoHomeHeightInMeters((int) returnToLaunchAlt, null);
+                        if (useTerrainFollowing) {
+                            flightController.setGoHomeHeightInMeters((int) returnToLaunchAlt, null);
+                        } else {
+                            flightController.setGoHomeHeightInMeters(80, null);
+                        }
                     }
 
                     missionsToSurvey.add(missionDetails);
 
-             // Ensure that if the next item is lower than the current one it maintains current altitude until it gets there,
-             // but if next if higher than current, it adjusts first and then flies to the next item.
+                    // Ensure that if the next item is lower than the current one it maintains current altitude until it gets there,
+                    // but if next if higher than current, it adjusts first and then flies to the next item.
 
-                    double flyToNextAlt = altitude;
-                    for (double ppa : polygonPointAltitudes) {
-                        flyToNextAlt = Math.max(flyToNextAlt, ppa);
-                    }
+//                    double flyToNextAlt = altitude;
+//                    for (double ppa : polygonPointAltitudes) {
+//                        flyToNextAlt = Math.max(flyToNextAlt, ppa);
+//                    }
 
-                    List<LatLong> fixerGridPoints = new ArrayList<LatLong>();
-                    List<Double> fixerGridAltitudes = new ArrayList<Double>();
+//                    List<LatLong> fixerGridPoints = new ArrayList<LatLong>();
+//                    List<Double> fixerGridAltitudes = new ArrayList<Double>();
+//
+//                    if (itemindex < items.size() - 1) { // not last mission to be added - must go to next orchard's altitude if higher than current
+//                        MissionItemProxy nextItemProxy = items.get(itemindex + 1);
+//                        MissionItem nextItem = nextItemProxy.getMissionItem();
+//                        List<Double> nextPolygonPointAltitudes = ((Survey) nextItem).getPolygonPointAltitudes();
+//                        List<LatLong> nextGridPoints = ((Survey) nextItem).getGridPoints();
+//                        LatLong firstNextWaypoint = nextGridPoints.get(0);
+//
+//                        for (double nextPPA : nextPolygonPointAltitudes) {
+//                            flyToNextAlt = Math.max(flyToNextAlt, nextPPA);
+//                        }
+//
+//                        flyToNextAlt -= takeoffAltitude;
+//
+//                        fixerGridAltitudes.add(flyToNextAlt);
+//                        fixerGridAltitudes.add(flyToNextAlt);
+//
+//                        fixerGridPoints.add(gridPoints.get(gridPoints.size()-1));
+//                        fixerGridPoints.add(firstNextWaypoint);
+//
+//                    }
+//
+//                    if (itemindex == items.size() - 1) { // last mission to be added - go to return to home altitude
+//
+//                        fixerGridAltitudes.add(returnToLaunchAlt);
+//                        fixerGridAltitudes.add(returnToLaunchAlt);
+//
+//                        fixerGridPoints.add(gridPoints.get(gridPoints.size()-1));
+//                        fixerGridPoints.add(currentCoords);
+//
+//                    }
 
-                    if (itemindex < items.size() - 1) { // not last mission to be added - must go to next orchard's altitude if higher than current
-                        MissionItemProxy nextItemProxy = items.get(itemindex + 1);
-                        MissionItem nextItem = nextItemProxy.getMissionItem();
-                        List<Double> nextPolygonPointAltitudes = ((Survey) nextItem).getPolygonPointAltitudes();
-                        List<LatLong> nextGridPoints = ((Survey) nextItem).getGridPoints();
-                        LatLong firstNextWaypoint = nextGridPoints.get(0);
-
-                        for (double nextPPA : nextPolygonPointAltitudes) {
-                            flyToNextAlt = Math.max(flyToNextAlt, nextPPA);
-                        }
-
-                        flyToNextAlt -= takeoffAltitude;
-
-                        fixerGridAltitudes.add(flyToNextAlt);
-                        fixerGridAltitudes.add(flyToNextAlt);
-
-                        fixerGridPoints.add(gridPoints.get(gridPoints.size()-1));
-                        fixerGridPoints.add(firstNextWaypoint);
-
-                    }
-
-                    if (itemindex == items.size() - 1) { // last mission to be added - go to return to home altitude
-
-                        fixerGridAltitudes.add(returnToLaunchAlt);
-                        fixerGridAltitudes.add(returnToLaunchAlt);
-
-                        fixerGridPoints.add(gridPoints.get(gridPoints.size()-1));
-                        fixerGridPoints.add(currentCoords);
-
-                    }
-
-                    MissionDetails altitudeFixer = getCurrentMissionDetails(fixerGridPoints, speed, 10000, altitude, fixerGridAltitudes);
-                    if (useTerrainFollowing) {
-                        missionsToSurvey.add(altitudeFixer);
-                    }
+//                    if (useTerrainFollowing) {
+//                        MissionDetails altitudeFixer = getCurrentMissionDetails(fixerGridPoints, speed, 10000, altitude, fixerGridAltitudes);
+//                        missionsToSurvey.add(altitudeFixer);
+//                    }
                     itemindex += 1;
                 } else {
                     return null;
@@ -742,8 +747,6 @@ public class DJIMissionImpl {
 */
     public WaypointMission buildMission(MissionDetails missionDetails, List<LatLong> points, List<Double> pointAltitudes, WaypointMissionFinishedAction action){
         WaypointMission.Builder waypointMissionBuilder = new WaypointMission.Builder();
-        // anticipating waypoint points, not polygon vertices
-
         //get mission parameters
         float flightSpeed = missionDetails.getSpeed();
         float imageDistance = missionDetails.getImageDistance();
@@ -755,13 +758,11 @@ public class DJIMissionImpl {
             double lat = points.get(i).getLatitude();
             double lng = points.get(i).getLongitude();
             float alt = pointAltitudes.get(i).floatValue();
-
+            Waypoint mWaypoint = new Waypoint(lat, lng, altitude);
             // control whether drone altitude is set dynamically in flight or not
-            if (!useTerrainFollowing) {
-                alt = 0;
+            if (useTerrainFollowing) {
+                mWaypoint.altitude = altitude + alt;
             }
-
-            Waypoint mWaypoint = new Waypoint(lat, lng, alt + altitude);
             waypointList.add(mWaypoint);
         }
 

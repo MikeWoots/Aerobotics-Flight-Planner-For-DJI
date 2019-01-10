@@ -76,7 +76,8 @@
     <string name="search_hint">Search boundary names</string>
     <string name="signUpMessageWithLink">Don\'t have an account? <a href="https://aeroview.aerobotics.co.za/sign-up?src=app">Sign up</a></string>
     <string name="signUpMessage">Don\'t have an account? Sign up</string>
-
+    <string name="terrainFollowingEnabled">Terrain Following Enabled</string>
+    <string name="terrainDataAvailable">Terrain Data Available</string>
     <!-- Toast Message -->
     <string name="user_autopan_long_press">Long press to activate user auto panning.</string>
     <string name="drone_autopan_long_press">Long press to activate drone auto panning.</string>

@@ -132,11 +132,13 @@ public class AeroviewPolygons implements APIContract{
         farmPointStrings = new ArrayList<>();
 
         for (BoundaryDetail boundaryDetail : boundaryDetails) {
-            PolygonData polygonData = new PolygonData(boundaryDetail.getName(), convertStringToLatLngList(boundaryDetail.getPoints()), false, boundaryDetail.getBoundaryId());
-            DroidPlannerApp.getInstance().polygonMap.put(boundaryDetail.getBoundaryId(), polygonData);
+            if (boundaryDetail.isDisplay()) {
+                PolygonData polygonData = new PolygonData(boundaryDetail.getName(), convertStringToLatLngList(boundaryDetail.getPoints()), false, boundaryDetail.getBoundaryId());
+                DroidPlannerApp.getInstance().polygonMap.put(boundaryDetail.getBoundaryId(), polygonData);
 
-            for(LatLng point: polygonData.getPoints())
-                farmPointStrings.add(point.latitude + " " + point.longitude);
+                for(LatLng point: polygonData.getPoints())
+                    farmPointStrings.add(point.latitude + " " + point.longitude);
+            }
         }
         Intent intent = new Intent(ACTION_POLYGON_UPDATE);
         if(farmPointStrings!=null) intent.putStringArrayListExtra("farm_points", farmPointStrings);
@@ -396,7 +398,7 @@ public class AeroviewPolygons implements APIContract{
                         int clientId = jsonObject.getInt("client_id");
                         int cropTypeId = jsonObject.getInt("crop_type_id");
                         if (!polygon.equals("") && clientId != DRONE_DEMO_ACCOUNT_ID) {
-                            boundariesList.add(new BoundaryDetail(name, id, polygon, altitudes, clientId, cropTypeId, farmId));
+                            boundariesList.add(new BoundaryDetail(name, id, polygon, altitudes, clientId, cropTypeId, true, farmId));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();

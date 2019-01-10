@@ -686,7 +686,8 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
                     //resumePreviousMission = false;
 
                     if (DroneListener.debuggingWithoutDrone) {
-                        missionControl.initializeMission(missionProxy, getApplicationContext(), true);
+                        confirmMissionStart(EditorActivity.this);
+                        //missionControl.initializeMission(missionProxy, getApplicationContext(), true);
                     } else {
                         if (DroidPlannerApp.isProductConnected()) {
                             confirmMissionStart(EditorActivity.this);
@@ -966,7 +967,7 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
         final SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         boolean previousMissionAborted = sharedPreferences.getBoolean(context.getString(R.string.mission_aborted), false);
         builder.setTitle("Start Mission");
-
+        sharedPreferences.edit().putBoolean(getString(R.string.terrainDataAvailable), true).apply();
         boolean noTerrainData = false;
         boolean cantUseTerrainFollow = false;
 
@@ -1018,17 +1019,17 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
             } else if (noTerrainData) { // There's no elevation data available for the polygons selected. Likely an issue getting data from Google Elevation API
                 tvNoTerrainData.setVisibility(View.VISIBLE);
             }
-
-            DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
-            useTerrainFollowSwitch.setChecked(DJIMissionImpl.useTerrainFollowing);
+            boolean terrainFollowingEnabled = sharedPreferences.getBoolean(getString(R.string.terrainFollowingEnabled), false);
+            // DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
+            useTerrainFollowSwitch.setChecked(terrainFollowingEnabled);
 
             useTerrainFollowSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    DJIMissionImpl.useTerrainFollowing = b;
-                    sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
+                public void onCheckedChanged(CompoundButton compoundButton, boolean isEnabled) {
+                    // DJIMissionImpl.useTerrainFollowing = isEnabled;
+                    sharedPreferences.edit().putBoolean(getString(R.string.terrainFollowingEnabled), isEnabled).apply();
 
-                    if (b) {
+                    if (isEnabled) {
                         Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now on.", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now off.", Toast.LENGTH_SHORT).show();
@@ -1038,18 +1039,23 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
 
             builder.setView(dialogView);
 
-            sharedPreferences.edit().putBoolean("use_terrain_following", DJIMissionImpl.useTerrainFollowing).apply();
+            // sharedPreferences.edit().putBoolean(getString(R.string.terrainFollowingEnabled), DJIMissionImpl.useTerrainFollowing).apply();
 
             //Override existing settings if no terrain data present. Note the user isn't able to see the switch for terrain following in this scenario
             if (noTerrainData || cantUseTerrainFollow) {
-                DJIMissionImpl.useTerrainFollowing = false;
-            }
+                // DJIMissionImpl.useTerrainFollowing = false;
+                sharedPreferences.edit().putBoolean(getString(R.string.terrainDataAvailable), false).apply();
 
+            }
         }
 
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                checkSdCardInserted();
+                if (!DroneListener.debuggingWithoutDrone) {
+                    checkSdCardInserted();
+                } else {
+                    missionControl.initializeMission(missionProxy, getApplicationContext(), false);
+                }
             }
         })
         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {

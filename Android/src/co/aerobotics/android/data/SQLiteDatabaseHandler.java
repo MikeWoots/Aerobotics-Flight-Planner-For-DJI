@@ -582,6 +582,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                 values.put(KEY_SIDELAP, boundaryDetail.getSidelap());
                 values.put(KEY_ALTITUDE, boundaryDetail.getAltitude());
                 values.put(KEY_SPEED, boundaryDetail.getSpeed());
+                values.put(KEY_DISPLAY, boundaryDetail.isDisplay());
                 values.put(KEY_CAMERA, boundaryDetail.getCamera());
                 values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
                 // insert
@@ -609,6 +610,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
             boundaryDetail.setSidelap((double) cursor.getInt(cursor.getColumnIndex(KEY_SIDELAP)));
             boundaryDetail.setAltitude((double) cursor.getInt(cursor.getColumnIndex(KEY_ALTITUDE)));
             boundaryDetail.setSpeed((double) cursor.getInt(cursor.getColumnIndex(KEY_SPEED)));
+            boundaryDetail.setDisplay(cursor.getInt(cursor.getColumnIndex(KEY_DISPLAY)) == 1);
             boundaryDetail.setClientId(cursor.getInt(cursor.getColumnIndex(KEY_CLIENT_ID)));
             boundaryDetail.setCamera(cursor.getString(cursor.getColumnIndex(KEY_CAMERA)));
             boundaryDetail.setFarmId(cursor.getInt(cursor.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
@@ -637,6 +639,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                     boundaryDetail.setSidelap((double) cursor.getInt(cursor.getColumnIndex(KEY_SIDELAP)));
                     boundaryDetail.setAltitude((double) cursor.getInt(cursor.getColumnIndex(KEY_ALTITUDE)));
                     boundaryDetail.setSpeed((double) cursor.getInt(cursor.getColumnIndex(KEY_SPEED)));
+                    boundaryDetail.setDisplay(cursor.getInt(cursor.getColumnIndex(KEY_DISPLAY)) == 1);
                     boundaryDetail.setClientId(cursor.getInt(cursor.getColumnIndex(KEY_CLIENT_ID)));
                     boundaryDetail.setFarmId(cursor.getInt(cursor.getColumnIndex(KEY_BOUNDARY_FARM_ID)));
                 } finally {
@@ -665,6 +668,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_ALTITUDE, boundaryDetail.getAltitude());
         values.put(KEY_SPEED, boundaryDetail.getSpeed());
         values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
+        values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
         values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
         values.put(KEY_BOUNDARY_CROPTYPE_ID, boundaryDetail.getCropTypeId());
         long primary_key = db.insert(TABLE_BOUNDARIES, null, values);
@@ -707,7 +711,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_POINTS, boundaryDetail.getPoints());
         values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
         values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
-        // values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
+        values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
         values.put(KEY_CAMERA, boundaryDetail.getCamera());
         values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
 
@@ -724,7 +728,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
         values.put(KEY_POINTS, boundaryDetail.getPoints());
         values.put(KEY_POLYGON_ALTITUDES, boundaryDetail.getPointAltitudes());
-        //values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
+        values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
         values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
 
         int i = db.update(TABLE_BOUNDARIES, // table
@@ -803,7 +807,7 @@ public class SQLiteDatabaseHandler extends SQLiteOpenHelper {
                     values.put(KEY_ALTITUDE, boundaryDetail.getAltitude());
                     values.put(KEY_SPEED, boundaryDetail.getSpeed());
                     values.put(KEY_CLIENT_ID, boundaryDetail.getClientId());
-                    // values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
+                    values.put(KEY_DISPLAY, boundaryDetail.isDisplay() ? 1 : 0);
                     values.put(KEY_BOUNDARY_FARM_ID, boundaryDetail.getFarmId());
 
                     // insert

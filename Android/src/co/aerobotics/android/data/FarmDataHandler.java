@@ -128,7 +128,7 @@ public class FarmDataHandler {
                         }
 
                         int cropTypeId = orchard.getInt("crop_type_id");
-                        serviceProviderBoundaries.add(new BoundaryDetail(name, id, polygon, altitudes, clientId, cropTypeId, farmId));
+                        serviceProviderBoundaries.add(new BoundaryDetail(name, id, polygon, altitudes, clientId, cropTypeId, true, farmId));
                     }
                     JSONObject farm = new JSONObject();
                     farm.put("name", farmName);
