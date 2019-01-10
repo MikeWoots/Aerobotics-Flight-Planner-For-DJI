@@ -985,68 +985,70 @@ public class EditorActivity extends DrawerNavigationUI implements GestureMapFrag
 
             builder.setView(dialogView);
 
-        } else {
+        }
+
+        else {
 
             final View dialogView = inflater.inflate(R.layout.dialog_start_mission, null);
-            final Switch useTerrainFollowSwitch = (Switch) dialogView.findViewById(R.id.useTerrainFollowSwitch);
-            final TextView tvNoTerrainData = (TextView) dialogView.findViewById(R.id.tvNoTerrainData);
-            final TextView tvCantUseTerrainFollow = (TextView) dialogView.findViewById(R.id.tvCantUseTerrainFollow);
-
-            useTerrainFollowSwitch.setVisibility(View.VISIBLE);
-            tvNoTerrainData.setVisibility(View.GONE);
-            tvCantUseTerrainFollow.setVisibility(View.GONE);
-
-            for (MissionItemProxy itemProxy : missionProxy.getItems()) {
-                MissionItem item = itemProxy.getMissionItem();
-
-                if (item instanceof Survey) {
-                    if (((Survey) item).getIsMergedConvexSurvey()) {
-                        cantUseTerrainFollow = true;
-                        useTerrainFollowSwitch.setVisibility(View.GONE);
-                    } else {
-                        List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
-                        // check altitudes list is not blank
-                        if (polygonPointAltitudes == null || polygonPointAltitudes.size() == 0 || polygonPointAltitudes.get(0) == 0) { // we can safely assume a zero altitude is just filler
-                            useTerrainFollowSwitch.setVisibility(View.GONE);
-                            noTerrainData = true;
-                        }
-                    }
-                }
-            }
-
-            if (cantUseTerrainFollow) { // Polygons for flying were selected badly. Need to pick one at a time for terrain following to work
-                tvCantUseTerrainFollow.setVisibility(View.VISIBLE);
-            } else if (noTerrainData) { // There's no elevation data available for the polygons selected. Likely an issue getting data from Google Elevation API
-                tvNoTerrainData.setVisibility(View.VISIBLE);
-            }
-            boolean terrainFollowingEnabled = sharedPreferences.getBoolean(getString(R.string.terrainFollowingEnabled), false);
-            // DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
-            useTerrainFollowSwitch.setChecked(terrainFollowingEnabled);
-
-            useTerrainFollowSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean isEnabled) {
-                    // DJIMissionImpl.useTerrainFollowing = isEnabled;
-                    sharedPreferences.edit().putBoolean(getString(R.string.terrainFollowingEnabled), isEnabled).apply();
-
-                    if (isEnabled) {
-                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now on.", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now off.", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+//            final Switch useTerrainFollowSwitch = (Switch) dialogView.findViewById(R.id.useTerrainFollowSwitch);
+//            final TextView tvNoTerrainData = (TextView) dialogView.findViewById(R.id.tvNoTerrainData);
+//            final TextView tvCantUseTerrainFollow = (TextView) dialogView.findViewById(R.id.tvCantUseTerrainFollow);
+//
+//            useTerrainFollowSwitch.setVisibility(View.VISIBLE);
+//            tvNoTerrainData.setVisibility(View.GONE);
+//            tvCantUseTerrainFollow.setVisibility(View.GONE);
+//
+//            for (MissionItemProxy itemProxy : missionProxy.getItems()) {
+//                MissionItem item = itemProxy.getMissionItem();
+//
+//                if (item instanceof Survey) {
+//                    if (((Survey) item).getIsMergedConvexSurvey()) {
+//                        cantUseTerrainFollow = true;
+//                        useTerrainFollowSwitch.setVisibility(View.GONE);
+//                    } else {
+//                        List<Double> polygonPointAltitudes = ((Survey) item).getPolygonPointAltitudes();
+//                        // check altitudes list is not blank
+//                        if (polygonPointAltitudes == null || polygonPointAltitudes.size() == 0 || polygonPointAltitudes.get(0) == 0) { // we can safely assume a zero altitude is just filler
+//                            useTerrainFollowSwitch.setVisibility(View.GONE);
+//                            noTerrainData = true;
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if (cantUseTerrainFollow) { // Polygons for flying were selected badly. Need to pick one at a time for terrain following to work
+//                tvCantUseTerrainFollow.setVisibility(View.VISIBLE);
+//            } else if (noTerrainData) { // There's no elevation data available for the polygons selected. Likely an issue getting data from Google Elevation API
+//                tvNoTerrainData.setVisibility(View.VISIBLE);
+//            }
+//            boolean terrainFollowingEnabled = sharedPreferences.getBoolean(getString(R.string.terrainFollowingEnabled), false);
+//            // DJIMissionImpl.useTerrainFollowing = sharedPreferences.getBoolean("use_terrain_following", false);
+//            useTerrainFollowSwitch.setChecked(terrainFollowingEnabled);
+//
+//            useTerrainFollowSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//                @Override
+//                public void onCheckedChanged(CompoundButton compoundButton, boolean isEnabled) {
+//                    // DJIMissionImpl.useTerrainFollowing = isEnabled;
+//                    sharedPreferences.edit().putBoolean(getString(R.string.terrainFollowingEnabled), isEnabled).apply();
+//
+//                    if (isEnabled) {
+//                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now on.", Toast.LENGTH_SHORT).show();
+//                    } else {
+//                        Toast.makeText(useTerrainFollowSwitch.getContext(), "Terrain following is now off.", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//            });
 
             builder.setView(dialogView);
 
             // sharedPreferences.edit().putBoolean(getString(R.string.terrainFollowingEnabled), DJIMissionImpl.useTerrainFollowing).apply();
 
             //Override existing settings if no terrain data present. Note the user isn't able to see the switch for terrain following in this scenario
-            if (noTerrainData || cantUseTerrainFollow) {
-                // DJIMissionImpl.useTerrainFollowing = false;
-                sharedPreferences.edit().putBoolean(getString(R.string.terrainDataAvailable), false).apply();
-
-            }
+//            if (noTerrainData || cantUseTerrainFollow) {
+//                // DJIMissionImpl.useTerrainFollowing = false;
+//                sharedPreferences.edit().putBoolean(getString(R.string.terrainDataAvailable), false).apply();
+//
+//            }
         }
 
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

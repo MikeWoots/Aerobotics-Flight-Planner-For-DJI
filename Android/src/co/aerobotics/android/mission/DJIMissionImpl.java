@@ -223,7 +223,8 @@ public class DJIMissionImpl {
         sharedPreferences = context.getSharedPreferences(context.getString(R.string.com_dji_android_PREF_FILE_KEY),Context.MODE_PRIVATE);
         boolean terrainFollowingEnabled = sharedPreferences.getBoolean(context.getString(R.string.terrainFollowingEnabled), false);
         boolean terrainDataAvailable = sharedPreferences.getBoolean(context.getString(R.string.terrainDataAvailable), false);
-        useTerrainFollowing = terrainDataAvailable && terrainFollowingEnabled;
+        // useTerrainFollowing = terrainDataAvailable && terrainFollowingEnabled;
+        useTerrainFollowing = false;
         List<MissionDetails> missionsToSurvey;
         if (resume) {
             missionsToSurvey = getMissionDetailsFromDb(context, sharedPreferences);
