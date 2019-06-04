@@ -178,6 +178,11 @@ public class AddBoundaryCheckDialog extends DialogFragment implements APIContrac
 
                             }
                         });
+                        try {
+                            postParams.put("hectares", 0);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                         postRequest.postJSONObject(postParams, GATEWAY_ORCHARDS, token);
                     }
 

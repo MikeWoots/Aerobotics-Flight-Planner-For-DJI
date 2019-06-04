@@ -551,6 +551,7 @@ public class AeroviewPolygons implements APIContract{
                     try {
                         final JSONObject jsonObject = requests.getJSONObject(i);
                         final PostRequest postRequest = new PostRequest();
+                        jsonObject.put("hectares", 0);
                         postRequest.postJSONObject(jsonObject, APIContract.GATEWAY_ORCHARDS, mToken);
                         postRequest.setOnPostReturnedListener(new PostRequest.OnPostReturnedListener() {
                             @Override

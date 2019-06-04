@@ -35,6 +35,7 @@ public class FarmDataHandler {
     private SharedPreferences sharedPref;
     private Context context;
     List<Integer> childClientIds = new ArrayList<>();
+    private JSONObject activeClient;
 
 
     public FarmDataHandler(Context context, JSONObject user) {
@@ -55,6 +56,7 @@ public class FarmDataHandler {
             int clientId = client.getInt("id");
             if (userId == clientUserId) {
                 activeClientId = clientId;
+                activeClient = client;
             }
             // if not drone demo account
             if (clientId != DRONE_DEMO_ACCOUNT_ID) {
@@ -73,15 +75,19 @@ public class FarmDataHandler {
         getChildClientIds(user.getJSONArray("client_hierarchy"));
         List<Integer> sharedFarmIds = getSharedFarmIds(user);
         List<JSONObject> invalidFarms = new ArrayList<>();
-        for (JSONObject farm: farms) {
-            int clientId = farm.getInt("client_id");
-            if (clientId != activeClientId) {
-                Integer farmId = farm.getInt("id");
-                if (!sharedFarmIds.contains(farmId) && !childClientIds.contains(clientId)) {
-                    invalidFarms.add(farm);
+        Integer roleTypeId = activeClient.optInt("role_type_id", -1);
+        if (roleTypeId == -1) {
+            for (JSONObject farm: farms) {
+                int clientId = farm.getInt("client_id");
+                if (clientId != activeClientId) {
+                    Integer farmId = farm.getInt("id");
+                    if (!sharedFarmIds.contains(farmId) && !childClientIds.contains(clientId)) {
+                        invalidFarms.add(farm);
+                    }
                 }
             }
         }
+
         List<JSONObject> serviceProviderFarms = getDroneServiceFarmsAndOrchards(user);
         if (serviceProviderFarms.size() > 0) {
 
