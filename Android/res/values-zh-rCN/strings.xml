@@ -594,27 +594,4 @@
     <string name="pref_title_tile_provider_preferences">瓦片地图提供商</string>
     <string name="label_fpv">FPV</string>
 
-    <!-- BaiduMap -->
-    <string name="pref_title_baidu_maps">百度地图偏好设置</string>
-    <string name="pref_baidu_map_offline_preference_title">百度离线地图下载</string>
-    <string name="pref_baidu_map_offline_preference_start">开始</string>
-    <string name="pref_baidu_map_offline_preference_stop">停止</string>
-    <string name="pref_baidu_map_offline_preference_view">查看</string>
-    <string name="pref_baidu_map_offline_preference_remove">删除</string>
-    <string name="pref_baidu_map_offline_preference_search">查找</string>
-    <string name="pref_baidu_map_offline_preference_city_list">城市列表</string>
-    <string name="pref_baidu_map_offline_preference_download_manage">下载管理</string>
-    <string name="pref_baidu_map_offline_preference_downloaded_label">已下载:--</string>
-    <string name="pref_baidu_map_offline_preference_downloaded_cities">已下载城市</string>
-    <string name="pref_baidu_map_offline_preference_download_available">有更新</string>
-    <string name="pref_baidu_map_offline_preference_download_latest">最新</string>
-    <string name="pref_baidu_map_offline_preference_hot_cities">热门城市</string>
-    <string name="pref_baidu_map_offline_preference_all_cities">所有城市</string>
-    <string name="pref_baidu_map_offline_preference_default_city">北京</string>
-    <string name="pref_baidu_map_offline_preference_default_city_id">131</string>
-    <string name="pref_baidu_map_offline_download_start_message">开始下载离线地图, City ID: %d</string>
-    <string name="pref_baidu_map_offline_download_stop_message">暂停下载离线地图. City ID: %d</string>
-    <string name="pref_baidu_map_offline_download_remove_message">删除离线地图. City ID: %d</string>
-    <string name="baidu_map_sdk_initializer_permission_error_message">百度地图: API Key错误, 请检查AndroidManifest.xml中百度地图的API Key是否正确!</string>
-    <string name="baidu_map_sdk_initializer_network_error_message">百度地图: 网络错误, 请检查网络连接是否正常!</string>
 </resources>

@@ -696,29 +696,6 @@
     <string name="lock_copter_orientation">Lock copter orientation</string>
     <string name="flip_mission_waypoints">Flip Start/End Points</string>
 
-    <!-- BaiduMap -->
-    <string name="pref_title_baidu_maps">Baidu Maps Preferences</string>
-    <string name="pref_baidu_map_offline_preference_title">Baidu Offline map download</string>
-    <string name="pref_baidu_map_offline_preference_start">Start</string>
-    <string name="pref_baidu_map_offline_preference_stop">Stop</string>
-    <string name="pref_baidu_map_offline_preference_view">View</string>
-    <string name="pref_baidu_map_offline_preference_remove">Remove</string>
-    <string name="pref_baidu_map_offline_preference_search">Search</string>
-    <string name="pref_baidu_map_offline_preference_city_list">City list</string>
-    <string name="pref_baidu_map_offline_preference_download_manage">Download manage</string>
-    <string name="pref_baidu_map_offline_preference_downloaded_label">Downloaded:—</string>
-    <string name="pref_baidu_map_offline_preference_downloaded_cities">Downloaded cities</string>
-    <string name="pref_baidu_map_offline_preference_download_available">Download available</string>
-    <string name="pref_baidu_map_offline_preference_download_latest">Latest</string>
-    <string name="pref_baidu_map_offline_preference_hot_cities">Hot cities</string>
-    <string name="pref_baidu_map_offline_preference_all_cities">All cities</string>
-    <string name="pref_baidu_map_offline_preference_default_city">BeiJing</string>
-    <string name="pref_baidu_map_offline_preference_default_city_id">131</string>
-    <string name="pref_baidu_map_offline_download_start_message">Begin to download offline map. City ID: %d</string>
-    <string name="pref_baidu_map_offline_download_stop_message">Pause downloading offline map. City ID: %d</string>
-    <string name="pref_baidu_map_offline_download_remove_message">Remove offline map. City ID: %d</string>
-    <string name="baidu_map_sdk_initializer_permission_error_message">BaiduMap: API Keycode error, please check the keycode in AndroidManifest.xml!</string>
-    <string name="baidu_map_sdk_initializer_network_error_message">BaiduMap: Network error!</string>
     <string name="warning_check_exported_mission">Please verify the exported mission!</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_rename">Rename</string>

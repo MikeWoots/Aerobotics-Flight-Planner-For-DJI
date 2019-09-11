@@ -59,7 +59,6 @@ dependencies {
     compile files('libs/protobuf-java-2.5.0.jar')
     compile files('libs/jeromq-0.3.4.jar')
     compile files('libs/sius-0.3.1-SNAPSHOT.jar')
-    compile files('libs/BaiduLBS_Android.jar')
     compile "com.squareup.okhttp:okhttp:${okhttp_version}"
     compile "com.squareup.okhttp:okhttp-urlconnection:${okhttp_version}"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -115,7 +114,7 @@ def versionPrefix = "flight_planner_for_dji"
 //Decomposed version name and code (https://plus.google.com/+JakeWharton/posts/6f5TcVPRZij)
 def versionMajor = 2
 def versionMinor = 1
-def versionPatch = 4
+def versionPatch = 5
 def versionBuild = 0 //bump for dogfood builds, public betas, etc.
 
 //Logging levels
@@ -271,7 +270,6 @@ android {
             dimension "default"
             applicationIdSuffix ".debug"
             resValue "string", "app_title", "Tower Dev"
-            resValue "string", "baidu_api_key", ""
             versionName generateVersionName(versionPrefix, versionMajor, versionMinor, versionPatch, "debug.${versionBuild}")
             //Enable or disable crashlytics based on the availability of the api key
             ext.enableCrashlytics = false
@@ -280,7 +278,6 @@ android {
             dimension "default"
             applicationIdSuffix ".beta"
             resValue "string", "app_title", "Aerobotics DJI Ground Station"
-            resValue "string", "baidu_api_key", "4x7A3lUHEmzFxosafDa4bLP7yinmEnPh"
             versionName generateVersionName(versionPrefix, versionMajor, versionMinor, versionPatch, "beta.${versionBuild}")
             //Enable or disable crashlytics based on the availability of the api key
             ext.enableCrashlytics = hasFabricApiKey()
@@ -288,7 +285,6 @@ android {
         prod {
             dimension "default"
             resValue "string", "app_title", "Flight Planner for DJI"
-            resValue "string", "baidu_api_key", "41mPy2URFjOL61GzyWk8U5oLhhwSYGWe"
             buildConfigField "boolean", "WRITE_LOG_FILE", "false"
             //Enable or disable crashlytics based on the availability of the api key
             ext.enableCrashlytics = hasFabricApiKey()

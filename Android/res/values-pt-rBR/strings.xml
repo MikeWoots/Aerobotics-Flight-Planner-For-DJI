@@ -615,29 +615,6 @@
     <string name="start_camera_before_first_waypoint">Inicie a camêra antes do primeiro waypoint</string>
     <string name="lock_copter_orientation">Travar a orientação do drone</string>
 
-    <!-- BaiduMap -->
-    <string name="pref_title_baidu_maps">Baidu Mapas - Preferências</string>
-    <string name="pref_baidu_map_offline_preference_title">Baidu - Download de mapas offline</string>
-    <string name="pref_baidu_map_offline_preference_start">Iniciar</string>
-    <string name="pref_baidu_map_offline_preference_stop">Parar</string>
-    <string name="pref_baidu_map_offline_preference_view">Ver</string>
-    <string name="pref_baidu_map_offline_preference_remove">Remover</string>
-    <string name="pref_baidu_map_offline_preference_search">Procurar</string>
-    <string name="pref_baidu_map_offline_preference_city_list">Lista de cidades</string>
-    <string name="pref_baidu_map_offline_preference_download_manage">Gerenciador de download</string>
-    <string name="pref_baidu_map_offline_preference_downloaded_label">Transferido:—</string>
-    <string name="pref_baidu_map_offline_preference_downloaded_cities">Cidades transferidas</string>
-    <string name="pref_baidu_map_offline_preference_download_available">Download disponível</string>
-    <string name="pref_baidu_map_offline_preference_download_latest">Mais recentes</string>
-    <string name="pref_baidu_map_offline_preference_hot_cities">Cidades preferidas</string>
-    <string name="pref_baidu_map_offline_preference_all_cities">Todas as cidades</string>
-    <string name="pref_baidu_map_offline_preference_default_city">BeiJing</string>
-    <string name="pref_baidu_map_offline_preference_default_city_id">131</string>
-    <string name="pref_baidu_map_offline_download_start_message">Começar a baixar mapa offline. Cidade ID: %d</string>
-    <string name="pref_baidu_map_offline_download_stop_message">Pausar o download de mapa offline. Cidade ID: %d</string>
-    <string name="pref_baidu_map_offline_download_remove_message">Remover o mapa offline. Cidade ID: %d</string>
-    <string name="baidu_map_sdk_initializer_permission_error_message">BaiduMap: API Keycode error, por favor, verifique o código de acesso em AndroidManifest.xml !</string>
-    <string name="baidu_map_sdk_initializer_network_error_message">BaiduMap: Network error !</string>
     <string name="warning_check_exported_mission">Por favor, verifique a missão exportada !</string>
     <string name="menu_delete">Deletar</string>
     <string name="menu_rename">Renomear</string>

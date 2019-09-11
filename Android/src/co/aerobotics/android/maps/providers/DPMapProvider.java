@@ -2,8 +2,6 @@ package co.aerobotics.android.maps.providers;
 
 import co.aerobotics.android.maps.DPMap;
 import co.aerobotics.android.maps.GoogleMapFragment;
-import co.aerobotics.android.maps.providers.baidu_map.BaiduMapFragment;
-import co.aerobotics.android.maps.providers.baidu_map.BaiduMapPrefFragment;
 import co.aerobotics.android.maps.providers.google_map.GoogleMapPrefFragment;
 
 import co.aerobotics.android.maps.providers.google_map.GoogleMapPrefFragment;
@@ -26,21 +24,11 @@ public enum DPMapProvider {
 		public MapProviderPreferences getMapProviderPreferences() {
 			return new GoogleMapPrefFragment();
 		}
-	},
-
-	BAIDU_MAP {
-		@Override
-		public DPMap getMapFragment() {	return new BaiduMapFragment(); }
-
-		@Override
-		public MapProviderPreferences getMapProviderPreferences() {
-			return new BaiduMapPrefFragment();
-		}
 	};
+
 
 	private static DPMapProvider[] ENABLED_PROVIDERS = {
 		GOOGLE_MAP,
-		BAIDU_MAP
 	};
 
 	/**

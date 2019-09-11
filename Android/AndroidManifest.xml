@@ -21,7 +21,6 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <!-- BaiduMap dependencies -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature android:name="android.hardware.screen.portrait" />
@@ -108,10 +107,6 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <!-- BaiduMap key, please replace with your own key -->
-        <meta-data
-            android:name="com.baidu.lbsapi.API_KEY"
-            android:value="@string/baidu_api_key" />
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="${fabricApiKey}" />
@@ -208,12 +203,6 @@
         </receiver>
 
         <service android:name=".AppService" />
-
-        <!-- BaiduMap location service -->
-        <service
-            android:name="com.baidu.location.f"
-            android:enabled="true"
-            android:process=":remote" />
 
         <activity
             android:name=".activities.IntroActivity"

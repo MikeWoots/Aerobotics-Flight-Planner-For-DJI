@@ -96,19 +96,4 @@ public class MapUtils {
         return exportedMissionItems;
     }
 
-	public static List<com.baidu.mapapi.model.LatLng> coordToBaiduLatLng(List<? extends LatLong> coords) {
-        List<com.baidu.mapapi.model.LatLng> points = new ArrayList<>(coords.size());
-        for(LatLong coord: coords){
-            points.add(coordToBaiduLatLng(coord));
-        }
-        return points;
-	}
-
-	public static com.baidu.mapapi.model.LatLng coordToBaiduLatLng(LatLong coord) {
-        return new com.baidu.mapapi.model.LatLng(coord.getLatitude(), coord.getLongitude());
-    }
-
-	public static LatLong baiduLatLngToCoord(com.baidu.mapapi.model.LatLng point) {
-        return new LatLong((float)point.latitude, (float) point.longitude);
-    }
 }
